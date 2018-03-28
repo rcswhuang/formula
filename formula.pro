@@ -1,4 +1,4 @@
-TEMPLATE = lib
+TEMPLATE = app
 LANGUAGE = c++
 CONFIG += qt warn_off thread exceptions
 TARGET = formula
@@ -10,15 +10,17 @@ INCLUDEPATH += \
 HEADERS       = \
     hformulaexport.h \
     hformuladlg.h \
-    hformulapi.h \
-    hformulaex.h
+    #hformulapi.h \
+    #hformulaex.h
 
 SOURCES       = \
     hformuladlg.cpp \
-    hformula.cpp \
-    hformulaex.cpp
+    #hformula.cpp \
+    #hformulaex.cpp \
+    main.cpp
 
 RESOURCES     = \
+    styleqss.qrc
     
 
 FORMS += \

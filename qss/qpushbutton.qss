@@ -1,0 +1,23 @@
+/* === QPushButton === */
+QPushButton {
+    /*border: 1px solid;*/
+    background-color: #CCCCCC;
+    padding: 4px;
+    min-width: 5px;
+    min-height: 5px;
+}
+
+QPushButton:hover {
+    /*background-color: #999;*/
+}
+
+QPushButton:pressed {
+    background-color: #333;
+    border-color: #555;
+    color: #AAA;
+}
+
+QPushButton:disabled {
+    color: #333333;
+}
+

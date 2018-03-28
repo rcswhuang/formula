@@ -724,8 +724,255 @@ FORMULARUN *getFormulaRun(ushort wNo)
     return (FORMULARUN*)m_FormulaRunList[wNo];
 }
 
-void getInputList(FORMULARUN* pFormulaRun,QList* pList,int nDBID)
+void getInputList(FORMULARUN* pFormulaRun,QList<FORMULACONDITION>* pList,int nDBID)
 {
+    if(NULL == pFormulaRun || NULL == pList)
+        return;
+    FORMULA *pFormula = pFormulaRun->pFormula;
+    if(NULL == pFormula && pFormula->btType != FORMULATYPE_TWO) return;
+
+    INPUTITEM ItemInput[FORMULALEN];
+    QList<INPUTITEM*> ItemGroup[FORMULALEN];
+    QList<INPUTITEM*> ItemBeforeOR;
+
+    int k = 0;
+    int top = 0;
+    int ItemCount = 0; //量测的个数
+    int nGroupNo = 1; //组合号
+    uchar btUnitCount = 0; //AND之前的单元个数
+    int nGroupIndex = 0;
+    bool bFirstOr = true;
+
+    while(k < FORMULALEN && pFormula->wFormula[k] != 0)
+    {
+        ushort wNo = pFormula->wFormula[k++];
+        if(ISFORMULAITEM(wNo))
+        {
+            ITEM* pItem = pFormulaRun->pItem[k-1];//取前一个ITEM
+            if(NULL == pItem)
+                return;
+            if((pItem->btType == ITEM_ANALOGUE) || (pItem->btType == ITEM_DIGITAL))
+            {
+                ITEM item;
+                FORMULAPARAMETER param;
+                param.wStation = pItem->DbWord.wStation;
+                param.wPoint = pItem->DbWord.wPoint;
+                param.wAttrib = pItem->DbWord.wAttrib;
+                param.pItem = &item;
+                param.btType = TYPE_ANALOGUE;
+                ItemInput[top].btType = 0;//yc
+                ItemInput[top].wStation = param.wStation;
+                if(ITEM_DIGITAL == pItem->btType)
+                {
+                    ItemInput[top].btType = 1;//yx
+                    param.btType = TYPE_DIGITAL;
+                }
+                ItemInput[top].wPoint = pItem->DbWord.wPoint;
+                if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&param,nDBID))
+                    return;
+                if(item.btType == ITEM_BOOLEAN)
+                    ItemInput[top].fValue = (float)pItem->bValue;
+                else
+                    ItemInput[top].fValue = (float)pItem->fValue;
+            }
+            if((pItem->btType == ITEM_FLOAT) || (pItem->btType == ITEM_BOOLEAN))
+            {
+                ItemInput[top].btType = 2; //常量
+                if(pItem->btType == ITEM_BOOLEAN)
+                    ItemInput[top].fValue= (float)pItem->bValue;
+                else
+                    ItemInput[top].fValue = (float)pItem->fValue;
+            }
+            btUnitCount++;
+            ItemInput[top].nGroup = nGroupNo;
+            ItemInput[top].bAlone = true;
+            ItemGroup[nGroupIndex].append(&ItemInput[0]);
+            ItemBeforeOR.append(&ItemInput[0]);
+            top++;
+            ItemCount++;
+            continue;
+        }
+
+        if(wNo == OP_AND)
+        {
+            if(btUnitCount == 2 || 3 == btUnitCount)
+            {
+                int nCount = ItemGroup[nGroupIndex].count();
+                int nNum;
+                INPUTITEM* pItemInput = NULL;
+                if(nCount >= 2)
+                {
+                    nNum = ItemGroup[nGroupIndex].count()-1;
+                    pItemInput = (INPUTITEM*)ItemGroup[nGroupIndex].value(nNum);
+                    if(pItemInput)
+                    {
+                        ItemGroup[nGroupIndex+1].append(pItemInput);
+                        ItemGroup[nGroupIndex].removeOne(pItemInput);
+                        if(!pItemInput->bAlone)
+                        {
+                            nNum = ItemGroup[nGroupIndex].count()-1;
+                            pItemInput = (INPUTITEM*)ItemGroup[nGroupIndex].value(nNum);
+                            if(pItemInput)
+                            {
+                                ItemGroup[nGroupIndex+1].append(pItemInput);
+                                ItemGroup[nGroupIndex].removeOne(pItemInput);
+                            }
+                        }
+                    }
+                }
+                nGroupIndex++;
+            }
+            btUnitCount = 0;
+        }
+
+        if(wNo == OP_OR)
+        {
+            nGroupNo++;
+            ushort wLastFormulaNo = pFormula->wFormula[k-2];
+            if(wLastFormulaNo != OP_AND && wLastFormulaNo != OP_OR)
+            {
+                ItemInput[top-1].nGroup = nGroupNo;
+                if(!ItemInput[top-1].bAlone)
+                    ItemInput[top-2].nGroup = nGroupNo;
+                nGroupIndex++;
+            }
+            else if(wLastFormulaNo == OP_AND)
+            {
+                for(int i = 0; i < ItemGroup[nGroupIndex].count();i++)
+                {
+                    INPUTITEM* inputItem = (INPUTITEM*)ItemGroup[nGroupIndex][i];
+                    if(inputItem) inputItem->nGroup = nGroupNo;
+                }
+            }
+            for(int i = 0; i < ItemBeforeOR.count();i++)
+            {
+                INPUTITEM* inputItem = (INPUTITEM*)ItemBeforeOR[i];
+                if(inputItem) inputItem->nGroup++;
+            }
+            nGroupNo++;
+            btUnitCount = 0;
+            if(bFirstOr)
+                bFirstOr = false;
+            ItemBeforeOR.clear();//不能删里面的元素
+        }
+
+        if((wNo >= OP_GREATER) && (wNo <= OP_NEQUAL))
+        {
+            btUnitCount--;
+            ItemInput[top-1].bAlone = false;
+            continue;
+        }
+    }
+
+    k = 0;
+    top = 0;
+    while(k < FORMULALEN && pFormula->wFormula[k] != 0)
+    {
+        ushort wNo = pFormula->wFormula[k++];
+        if(ISFORMULAITEM(wNo))
+        {
+            top++;
+            continue;
+        }
+
+        if(wNo == OP_NOT)
+        {
+            if(ItemInput[top-1].btType = 1 || ItemInput[top-1].btType == 0)
+            {
+                FORMULACONDITION* pCond = new FORMULACONDITION;
+                pCond->btType = CONDITIONTYPE_DIGITAL;
+                pCond->wStationA = ItemInput[top-1].wStation;
+                pCond->wPointA = ItemInput[top-1].wPoint;
+                pCond->wAttribA = ItemInput[top-1].wAttrib;
+                pCond->fValueA = ItemInput[top-1].fValue;
+                pCond->wOp = wNo;
+                pCond->wGroupNo = ItemInput[top-1].nGroup;
+                if((ItemInput[top-1].fValue - 0) < 0.00001)
+                    pCond->bResult = true;
+                else
+                    pCond->bResult = false;
+                pList->append(pCond);
+                ItemInput[top-1].fValue = (float)pCond->bResult;
+                ItemInput[top-1].btType = 3;
+            }
+            continue;
+        }
+
+        if((wNo >= OP_GREATER) &&(wNo <= OP_NEQUAL))
+        {
+            if(ItemInput[top-2].btType == 0 || ItemInput[top-2].btType == 1)//---huangw
+            {
+                FORMULACONDITION* pCond = new FORMULACONDITION;
+                pCond->btType = CONDITIONTYPE_ANALOGUE;
+                pCond->wStationA = ItemInput[top-2].wStation;
+                pCond->wPointA = ItemInput[top-2].wPoint;
+                pCond->wAttribA = ItemInput[top-2].wAttrib;
+                pCond->fValueA = ItemInput[top-2].fValue;
+                pCond->wOp = wNo;
+                pCond->wGroupNo = ItemInput[top-2].nGroup;
+                if(ItemInput[top-1].btType == 0)
+                {
+                    pCond->btPointTypeB = POINTBTYPE_ANALOGUE;
+                    pCond->wStationB = ItemInput[top-1].wStation;
+                    pCond->wPointB = ItemInput[top-1].wPoint;
+                    pCond->wAttribB = ItemInput[top-1].wAttrib;
+                    pCond->fValueB = ItemInput[top-1].fValue;
+                }
+                if(ItemInput[top-1].btType == 2)
+                {
+                    pCond->btPointTypeB = POINTBTYPE_CONST;
+                    pCond->fValueB = ItemInput[top-1].fValue;
+                }
+
+                switch (wNo) {
+                case OP_GREATER:
+                    pCond->bResult = (pCond->fValueA > pCond->fValueB);
+                    break;
+                case OP_LOWER:
+                    pCond->bResult = (pCond->fValueA < pCond->fValueB);
+                    break;
+                case OP_EQUAL:
+                    pCond->bResult = (pCond->fValueA == pCond->fValueB);
+                    break;
+                case OP_GEQUAL:
+                    pCond->bResult = (pCond->fValueA >= pCond->fValueB);
+                    break;
+                case OP_LEQUAL:
+                    pCond->bResult = (pCond->fValueA <= pCond->fValueB);
+                    break;
+                case OP_NEQUAL:
+                    pCond->bResult = (pCond->fValueA != pCond->fValueB);
+                    break;
+                default:
+                    break;
+                }
+                pList->append(pCond);
+                ItemInput[top-2].fValue = (float)(pCond->bResult);
+                ItemInput[top-2].btType = 3;
+            }
+            continue;
+        }
+    }
+
+    for(int i = 0; i < ItemCount;i++)
+    {
+        if(ItemInput[i].btType == 1)
+        {
+            FORMULACONDITION* pCond = new FORMULACONDITION;
+            pCond->btType = CONDITIONTYPE_DIGITAL;
+            pCond->wStationA = ItemInput[i].wStation;
+            pCond->wPointA = ItemInput[i].wPoint;
+            pCond->wAttribA = ItemInput[i].wAttrib;
+            pCond->fValueA = ItemInput[i].fValue;
+            pCond->wOp = 0;
+            pCond->wGroupNo = ItemInput[top-1].nGroup;
+            if((ItemInput[top-1].fValue - 0) < 0.00001)
+                pCond->bResult = false;
+            else
+                pCond->bResult = true;
+            pList->append(pCond);
+        }
+    }
 
 }
 

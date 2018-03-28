@@ -54,12 +54,24 @@ FORMULA* FORMULA_EXPORT getFormula(ushort wNo)
 
 bool FORMULA_EXPORT loadFormulaData(QList<FORMULA*> pFormulaList,QList<ITEM*> pItemList)
 {
-
+    if(!loadFormulaData(pFormulaList,pItemList)) return false;
+    m_bFormula = true;
+    return true;
 }
 
 bool FORMULA_EXPORT saveFormulaData()
 {
-
+    if(!m_bModified)
+        return true;
+    FORMULAITEMLIST param;
+    param.pFormulaList = &m_FormulaList;
+    param.pItemList = &m_ItemList;
+    if(!m_lpFormulaProc(FM_SAVEFORMULALIST,0,(LPARAM)&param))
+    {
+        m_bModified = false;
+        return true;
+    }
+    return false;
 }
 
 void FORMULA_EXPORT setFormulaModified(bool modified)

@@ -36,7 +36,7 @@ void ItemTimeToTime(struct tm* ptm,ITEM* pItem);
 void TimeToItemTime(struct tm* ptm,ITEM* pItem);
 bool matchPulAttrib(ITEM* pItem,ushort& wAttrib);
 FORMULARUN *getFormulaRun(ushort wNo);
-void getInputList(FORMULARUN* pFormulaRun,QList* pList,int nDBID);
+void getInputList(FORMULARUN* pFormulaRun,QList<FORMULACONDITION>* pList,int nDBID);
 void getRuleFailList(QList<FORMULACOND*> *pCondList,QStringList* pStringList,bool bGrade = false);
 bool getVirtualYxFailList(ushort wStation,uchar btType,ushort wPoint,uchar btValue,QStringList& list);
 

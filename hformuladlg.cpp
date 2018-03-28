@@ -1,7 +1,7 @@
 #include "hformuladlg.h"
 #include "ui_formula.h"
-#include "hformulapi.h"
-
+//#include "hformulapi.h"
+/*
 extern ATTRINFO AnaAttrInfo[];
 extern ATTRINFO DgtAttrInfo[];
 extern ATTRINFO PulAttrInfo[];
@@ -12,7 +12,32 @@ ATTRINFOS AttrInfos[]=
   {TYPE_DIGITAL, "遥信量",DgtAttrInfo},
   {TYPE_PULSE,   "遥脉量",PulAttrInfo},
   {TYPE_NULL,     NULL,    NULL}
-};
+};*/
+
+QString strNum = "QPushButton { \
+        background-color:#16A085;padding: 4px;min-width: 5px;min-height: 5px;border:none;color:#ffffff} \
+        QPushButton:hover {background-color: #999;} \
+        QPushButton:pressed {background-color: #333;color: #AAA;} \
+        QPushButton:disabled {color: #333333;}";
+QString strOper = "QPushButton { \
+        background-color:#D35400;border:none;color:#ffffff;padding: 4px;min-width: 5px;min-height: 5px;} \
+        QPushButton:hover {background-color: #999;} \
+        QPushButton:pressed {background-color: #333;color: #AAA;} \
+        QPushButton:disabled {color: #333333;}";
+
+QString strComp = "QPushButton { \
+        background-color:#104E8B;border:none;color:#ffffff;padding: 4px;min-width: 5px;min-height: 5px;} \
+        QPushButton:hover {background-color: #999;} \
+        QPushButton:pressed {background-color: #333;border-color: #555;color: #AAA;} \
+        QPushButton:disabled {color: #333333;}";
+
+QString strLabel = "QLabel{background-color:#00008B;color:#ffffff;}";
+
+QString LineEdit = "QTextEdit{ \
+        font-family:Helvetica;font-size:14px;height:50px;border-radius:5px \
+        }";
+
+
 
 HFormulaDlg::HFormulaDlg(QWidget *parent) :
     QDialog(parent),
@@ -22,9 +47,11 @@ HFormulaDlg::HFormulaDlg(QWidget *parent) :
 
     wStation = (ushort)-1;
     wProtect = (ushort)-1;
-    btType = TYPE_NULL;
+    //btType = TYPE_NULL;
+    initConnect();
 }
 
+/*
 HFormulaDlg::HFormulaDlg(FORMULA* pFormula,QWidget *parent):
     QDialog(parent),
     ui(new Ui::Formula)
@@ -36,7 +63,7 @@ HFormulaDlg::HFormulaDlg(FORMULA* pFormula,QWidget *parent):
     btType = TYPE_NULL;
     m_pFormula = pFormula;
 }
-
+*/
 HFormulaDlg::~HFormulaDlg()
 {
     delete ui;
@@ -49,7 +76,7 @@ void HFormulaDlg::init()
     connect(ui->IDC_TYPE,SIGNAL(currentIndexChanged(int)),this,SLOT(onTypeChanged_clicked()));
     connect(ui->IDC_ATTRIB,SIGNAL(currentIndexChanged(int)),this,SLOT(onAttribChanged_clicked()));
     connect(ui->IDC_LIST,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(onListWidget_doubleClicked()));
-
+/*
     ui->IDC_STATION->clear();
     ui->IDC_COMBOMODE->clear();//间隔
     ui->IDC_STATION->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -96,6 +123,7 @@ void HFormulaDlg::init()
 
     ui->IDC_FORMULA->setChecked(Qt::Checked);
     ui->IDC_INFO->setEnabled(false);
+    */
 
 }
 
@@ -113,13 +141,28 @@ void HFormulaDlg::initConnect()
     connect(ui->IDC_9,SIGNAL(clicked(bool)),this,SLOT(idc9_clicked()));
     connect(ui->IDC_10,SIGNAL(clicked(bool)),this,SLOT(idc10_clicked()));
     connect(ui->IDC_DOT,SIGNAL(clicked(bool)),this,SLOT(idcDot_clicked()));
+    ui->IDC_0->setStyleSheet(strNum);
+    ui->IDC_1->setStyleSheet(strNum);
+    ui->IDC_2->setStyleSheet(strNum);
+    ui->IDC_3->setStyleSheet(strNum);
+    ui->IDC_4->setStyleSheet(strNum);
+    ui->IDC_5->setStyleSheet(strNum);
+    ui->IDC_6->setStyleSheet(strNum);
+    ui->IDC_7->setStyleSheet(strNum);
+    ui->IDC_8->setStyleSheet(strNum);
+    ui->IDC_9->setStyleSheet(strNum);
+    ui->IDC_10->setStyleSheet(strNum);
+    ui->IDC_DOT->setStyleSheet(strNum);
 
     // + - * /
     connect(ui->IDC_PLUS,SIGNAL(clicked(bool)),this,SLOT(idcPlus_clicked()));
     connect(ui->IDC_MINUS,SIGNAL(clicked(bool)),this,SLOT(idcMinus_clicked()));
     connect(ui->IDC_MUTIPLY,SIGNAL(clicked(bool)),this,SLOT(idcMutiply_clicked()));
     connect(ui->IDC_DIDVDE,SIGNAL(clicked(bool)),this,SLOT(idcDidvde_clicked()));
-
+    ui->IDC_PLUS->setStyleSheet(strOper);
+    ui->IDC_MINUS->setStyleSheet(strOper);
+    ui->IDC_MUTIPLY->setStyleSheet(strOper);
+    ui->IDC_DIDVDE->setStyleSheet(strOper);
     // > < = != >= <=
     connect(ui->IDC_GREATE,SIGNAL(clicked(bool)),this,SLOT(idcGreate_clicked()));
     connect(ui->IDC_LOWER,SIGNAL(clicked(bool)),this,SLOT(idcLower_clicked()));
@@ -127,20 +170,34 @@ void HFormulaDlg::initConnect()
     connect(ui->IDC_NEQUAL,SIGNAL(clicked(bool)),this,SLOT(idcNequal_clicked()));
     connect(ui->IDC_GEQUAL,SIGNAL(clicked(bool)),this,SLOT(idcGequal_clicked()));
     connect(ui->IDC_LEQUAL,SIGNAL(clicked(bool)),this,SLOT(idcLequal_clicked()));
-
+    ui->IDC_GREATE->setStyleSheet(strComp);
+    ui->IDC_LOWER->setStyleSheet(strComp);
+    ui->IDC_EQUAL->setStyleSheet(strComp);
+    ui->IDC_NEQUAL->setStyleSheet(strComp);
+    ui->IDC_GEQUAL->setStyleSheet(strComp);
+    ui->IDC_LEQUAL->setStyleSheet(strComp);
     // （ ）
     connect(ui->IDC_LPARENTHESIS,SIGNAL(clicked(bool)),this,SLOT(idcLparenthesis_clicked()));
     connect(ui->IDC_RPARENTHESIS,SIGNAL(clicked(bool)),this,SLOT(idcRparenthesis_clicked()));
-
+    ui->IDC_LPARENTHESIS->setStyleSheet(strOper);
+    ui->IDC_RPARENTHESIS->setStyleSheet(strOper);
     //Dat power and or xor not
     connect(ui->IDC_DAT,SIGNAL(clicked(bool)),this,SLOT(idcDat_clicked()));
     connect(ui->IDC_POWER,SIGNAL(clicked(bool)),this,SLOT(idcPower_clicked()));
+    ui->IDC_DAT->setStyleSheet(strOper);
+    ui->IDC_POWER->setStyleSheet(strOper);
+
     connect(ui->IDC_AND,SIGNAL(clicked(bool)),this,SLOT(idcAnd_clicked()));
     connect(ui->IDC_OR,SIGNAL(clicked(bool)),this,SLOT(idcOr_clicked()));
     connect(ui->IDC_XOR,SIGNAL(clicked(bool)),this,SLOT(idcXor_clicked()));
     connect(ui->IDC_NOT,SIGNAL(clicked(bool)),this,SLOT(idcNot_clicked()));
+    ui->IDC_AND->setStyleSheet(strComp);
+    ui->IDC_OR->setStyleSheet(strComp);
+    ui->IDC_XOR->setStyleSheet(strComp);
+    ui->IDC_NOT->setStyleSheet(strComp);
 
     //max min ave sum maxT minT
+    /*
     connect(ui->IDC_MAX,SIGNAL(clicked(bool)),this,SLOT(idcMax_clicked()));
     connect(ui->IDC_MIN,SIGNAL(clicked(bool)),this,SLOT(idcMin_clicked()));
     connect(ui->IDC_AVE,SIGNAL(clicked(bool)),this,SLOT(idcAve_clicked()));
@@ -155,7 +212,7 @@ void HFormulaDlg::initConnect()
     connect(ui->IDC_1HOUR,SIGNAL(clicked(bool)),this,SLOT(idc1Hour_clicked()));
     connect(ui->IDC_1DAY,SIGNAL(clicked(bool)),this,SLOT(idc1Day_clicked()));
     connect(ui->IDC_1MON,SIGNAL(clicked(bool)),this,SLOT(idc1Mon_clicked()));
-
+*/
     redoAct = new QAction();
     connect(redoAct,SIGNAL(toggled(bool)),this,SLOT(redo()));
     redoAct->setShortcut(Qt::Key_Redo);
@@ -163,6 +220,12 @@ void HFormulaDlg::initConnect()
     undoAct = new QAction();
     connect(undoAct,SIGNAL(toggled(bool)),this,SLOT(undo()));
     undoAct->setShortcut(Qt::Key_Undo);
+
+    ui->IDC_EDIT->setStyleSheet(LineEdit);
+    ui->label->setStyleSheet(strLabel);
+    ui->label_2->setStyleSheet(strLabel);
+    ui->label_3->setStyleSheet(strLabel);
+    ui->label_4->setStyleSheet(strLabel);
 
 }
 
@@ -174,7 +237,7 @@ void HFormulaDlg::idc0_clicked()
     cursor.clearSelection();
     cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
     cursor.insertText(tr("0"));
-    ui->IDC_EDIT->setCursor(cursor);
+    ui->IDC_EDIT->setTextCursor(cursor);
 }
 
 void HFormulaDlg::idc1_clicked()
@@ -394,7 +457,7 @@ void HFormulaDlg::undo()
 
 void HFormulaDlg::onStationChanged_clicked()
 {
-    int index = ui->IDC_STATION->currentIndex();
+  /*  int index = ui->IDC_STATION->currentIndex();
     if(-1 == index)
         return;
     ushort wStationID = ui->IDC_STATION->currentData().toUInt();
@@ -418,13 +481,13 @@ void HFormulaDlg::onStationChanged_clicked()
     if(-1 != btType)
     {
         setPointList(wStation,btType);
-    }
+    }*/
 
 }
 
 void HFormulaDlg::onIntervalChanged_clicked()
 {
-    int index = ui->IDC_COMBOMODE->currentIndex();
+  /*  int index = ui->IDC_COMBOMODE->currentIndex();
     if(-1 == index)
         return;
     ushort wProtectID = ui->IDC_COMBOMODE->currentData().toUInt();
@@ -438,12 +501,12 @@ void HFormulaDlg::onIntervalChanged_clicked()
     btType = btTypeID;
     updateAttrib();
     if(-1 != btTypeID)
-        setPointList(ui->IDC_STATION->currentData().toUInt(),btType);
+        setPointList(ui->IDC_STATION->currentData().toUInt(),btType);*/
 }
 
 void HFormulaDlg::onTypeChanged_clicked()
 {
-    int index = ui->IDC_TYPE->currentIndex();
+  /*  int index = ui->IDC_TYPE->currentIndex();
     if(-1 == index)
         return;
     uchar btTypeID = ui->IDC_TYPE->currentData().toUInt();
@@ -452,7 +515,7 @@ void HFormulaDlg::onTypeChanged_clicked()
     btType = btTypeID;
     updateAttrib();
     if(-1 != ui->IDC_STATION->currentIndex())
-        setPointList(ui->IDC_STATION->currentData().toUInt(),btType);
+        setPointList(ui->IDC_STATION->currentData().toUInt(),btType);*/
 }
 
 void HFormulaDlg::onAttribChanged_clicked()
@@ -462,7 +525,7 @@ void HFormulaDlg::onAttribChanged_clicked()
 
 void HFormulaDlg::onListWidget_doubleClicked()
 {
-    QString strStation;
+ /*   QString strStation;
     QString strPoint;
     QString strAttrib;
     if(-1 == ui->IDC_STATION->currentIndex())
@@ -505,13 +568,13 @@ void HFormulaDlg::onListWidget_doubleClicked()
     QTextDocument* doc = ui->IDC_EDIT->document();
     doc->redo();
 
-    ui->IDC_EDIT->setFocus();
+    ui->IDC_EDIT->setFocus();*/
 
 }
 
 void HFormulaDlg::setPointList(ushort wStation, uchar btType)
 {
-    ui->IDC_LIST->clear();
+ /*   ui->IDC_LIST->clear();
     ANALOGUE analogue;
     DIGITAL digital;
 
@@ -545,12 +608,12 @@ void HFormulaDlg::setPointList(ushort wStation, uchar btType)
             }
         }
         break;
-    }
+    }*/
 }
 
 void HFormulaDlg::updateAttrib()
 {
-    ui->IDC_ATTRIB->clear();
+  /*  ui->IDC_ATTRIB->clear();
     for(int i = 0; AttrInfos[i].pAttrInfo != NULL;i++ )
     {
         if(AttrInfos[i].btType == btType)
@@ -563,5 +626,5 @@ void HFormulaDlg::updateAttrib()
         }
     }
     if(ui->IDC_TYPE->count()>0)
-        ui->IDC_TYPE->setCurrentIndex(0);
+        ui->IDC_TYPE->setCurrentIndex(0);*/
 }

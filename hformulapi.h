@@ -139,6 +139,23 @@ typedef struct _tagFORMULACONDITION
     bool bResult;
 }FORMULACONDITION;
 
+typedef struct _tagINPUTITEM
+{
+    uchar btType; // 0-yc 1-yx 2-const 3-calc
+    ushort wStation;
+    ushort wPoint;
+    ushort wAttrib;
+    float fValue;
+    bool bAlone;//独立和组合
+    int nGroup; //组号
+}INPUTITEM;
+
+typedef struct _tagFORMULAITEMLIST
+{
+    QList<FORMULA*> *pFormulaList;
+    QList<ITEM*> *pItemList;
+}FORMULAITEMLIST;
+
 
 #define INVALID_FLOAT 3.4e+38F  //超大值
 #define INVALID_TIME 0
