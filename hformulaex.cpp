@@ -1,5 +1,4 @@
 #include "hformulaex.h"
-#include "hformulapi.h"
 #include <QList>
 using namespace std;
 extern QList<FORMULA*> m_FormulaList;
@@ -11,9 +10,13 @@ extern ushort m_wStation;
 extern uchar m_btType;
 extern uchar m_btFormulaModule;
 extern QString m_strFormulaText;
+extern LPFORMULAPROC m_lpFormulaProc;
+extern ATTRINFO AnaAttrInfo[];
+extern ATTRINFO DgtAttrInfo[];
+extern ATTRINFO PulAttrInfo[];
 
 //定义相关功能函数 内部使用，不对外开放
-bool InsertFormula(FORMULA* pFormula)
+bool insertFormula(FORMULA* pFormula)
 {
     if(NULL == pFormula)
         return false;
@@ -21,7 +24,6 @@ bool InsertFormula(FORMULA* pFormula)
     QList<FORMULA*>::iterator cur = m_FormulaList.begin();
     for(;cur != m_FormulaList.end();++cur)
     {
-        //QList<FORMULA*>::iterator sav = cur;
         FORMULA* pCurFormula = *cur;
         if(wNo == pCurFormula->wNo)
             return false;
@@ -35,7 +37,7 @@ bool InsertFormula(FORMULA* pFormula)
     return true;
 }
 
-bool InsertItem(ITEM* pItem,QList<ITEM*>* &pItemList)
+bool insertItem(ITEM* pItem,QList<ITEM*>* pItemList)
 {
     if(NULL == pItemList)
         pItemList = &m_ItemList;
@@ -90,13 +92,13 @@ ushort getNextItemNo()
     return wNo;
 }
 
-ITEM* getItem(ushort wNo,QList<ITEM*>* &pItemList)
+ITEM* getItem(ushort wNo,QList<ITEM*>* pItemList)
 {
     if(NULL == pItemList)
         pItemList = &m_ItemList;
     for(int i = 0; i < pItemList->count();i++)
     {
-        ITEM* item = (ITEM*)pItemList[i];
+        ITEM* item = (ITEM*)pItemList->at(i);
         if(wNo == item->wNo)
             return item;
     }
@@ -164,15 +166,15 @@ ITEM* addItem(ITEM* pItem)
     if(NULL == item)
     {
         item = new ITEM;
-        if(NULL == newItem)
-            return null;
+        if(NULL == item)
+            return NULL;
         *item = *pItem;
         item->wNo = getNextItemNo();
 
-        if(!InsertItem(item,&m_ItemList))
+        if(!insertItem(item,&m_ItemList))
         {
             delete item;
-            return null;
+            return NULL;
         }
     }
     return item;
@@ -273,7 +275,7 @@ bool loadRunFormulaList()
 }
 
 //从文件中读取的规则表和规则项表
-bool loadFormulaData(QList<FORMULA *>*  &pFormulaList, QList<ITEM *>* &pItemList)
+bool loadFormulaData(QList<FORMULA *>*  pFormulaList, QList<ITEM *>* pItemList)
 {
     if(NULL == pFormulaList || NULL == pItemList)
         return false;
@@ -284,7 +286,7 @@ bool loadFormulaData(QList<FORMULA *>*  &pFormulaList, QList<ITEM *>* &pItemList
         if(NULL == pFormula) continue;
         FORMULA* pNewFormula = new FORMULA;
         memcpy(pNewFormula,pFormula,sizeof(FORMULA));
-        InsertFormula(pNewFormula);
+        insertFormula(pNewFormula);
     }
 
     QList<ITEM*>::iterator it = pItemList->begin();
@@ -294,7 +296,7 @@ bool loadFormulaData(QList<FORMULA *>*  &pFormulaList, QList<ITEM *>* &pItemList
         if(NULL == pItem) continue;
         ITEM* pNewItem = new ITEM;
         memcpy(pNewItem,pItem,sizeof(ITEM));
-        InsertItem(pNewItem,&m_ItemList);
+        insertItem(pNewItem,&m_ItemList);
     }
 
     if(!loadRunFormulaList()) return false;
@@ -402,7 +404,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
 {
     if(NULL == m_lpFormulaProc)
         return false;
-
+    int nDBID = 0;
     FORMULAPARAMETER parameter;
     parameter.wStation = wStation;
     parameter.btType = TYPE_NULL;
@@ -410,15 +412,16 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
 
     STATION station;
     parameter.pBuffer = &station;
-    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter));
+    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
         return false;
     parameter.btType = btType;
     char szText[128] = "";
     switch (btType) {
     case TYPE_ANALOGUE:
+    {
         ANALOGUE analogue;
         parameter.pBuffer = &analogue;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter));
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
             return false;
         int i = 0;
         for(; AnaAttrInfo[i].szAttrib != NULL;i++)
@@ -427,12 +430,14 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
         if(NULL == AnaAttrInfo[i].szAttrib)
             return false;
         sprintf(szText,"%c%s.%s.%s%c",'[',station.szStationName,analogue.szAnalogueName,AnaAttrInfo[i].szAttrib,']');
+    }
         break;
 
     case TYPE_DIGITAL:
+    {
         DIGITAL digital;
         parameter.pBuffer = &digital;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter));
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
             return false;
         int i = 0;
         for(; DgtAttrInfo[i].szAttrib != NULL;i++)
@@ -441,9 +446,10 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
         if(NULL == DgtAttrInfo[i].szAttrib)
             return false;
         sprintf(szText,"%c%s.%s.%s%c",'[',station.szStationName,digital.szDigitalName,DgtAttrInfo[i].szAttrib,']');
+    }
         break;
 
-    case TYPE_PLUSE:
+    case TYPE_PULSE:
        /* PULSE analogue;
         parameter.pBuffer = &analogue;
         if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter));
@@ -456,6 +462,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
             return false;
         sprintf(szText,"%c%s.%s.%s%c",'[',station.szStationName,analogue.szAnalogueName,AnaAttrInfo[i].szAttrib,']');
         break;*/
+        break;
     default:
         break;
     }
@@ -473,6 +480,7 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
     ITEM* pItem = getItem(wNo,&m_ItemList);
     if(NULL == pItem)
         return false;
+    int nDBID = 0;
     ITEM item;
     FORMULAPARAMETER parameter;
     parameter.wStation = pItem->DbWord.wStation;
@@ -489,13 +497,14 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
     case ITEM_PULHST:
     case ITEM_PULSE:
     case ITEM_PULTIME:
-        uchar btType = (ITEM_ANAHST == pItem->btType || ITEM_ANALOGUE == pItem->btType || ITEM_ANATIME == pItem->btType)?TYPE_ANALOGUE:TYPE_PLUSE;
+    {
+        uchar btType = (ITEM_ANAHST == pItem->btType || ITEM_ANALOGUE == pItem->btType || ITEM_ANATIME == pItem->btType)?TYPE_ANALOGUE:TYPE_PULSE;
         if(!getWordString(pItem->DbWord.wStation,btType,pItem->DbWord.wPoint,pItem->DbWord.wAttrib,string))
             return false;
         if(bValue && NULL != m_lpFormulaProc)
         {
             parameter.btType = btType;
-            if(m_lpFormulaProc(FM_GETDBATTR,0,(LPARAM)&item))
+            if(m_lpFormulaProc(FM_GETDBATTR,0,(LPARAM)&item,nDBID))
             {
                 char szText[64] = "";
                 if(ITEM_FLOAT == item.btType)
@@ -506,15 +515,17 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
                 string += szText;
             }
         }
+    }
         break;
     case ITEM_DIGITAL:
+    {
         uchar btType = TYPE_DIGITAL;
         if(!getWordString(pItem->DbWord.wStation,btType,pItem->DbWord.wPoint,pItem->DbWord.wAttrib,string))
             return false;
         if(bValue && NULL != m_lpFormulaProc)
         {
             parameter.btType = btType;
-            if(m_lpFormulaProc(FM_GETDBATTR,0,(LPARAM)&item))
+            if(m_lpFormulaProc(FM_GETDBATTR,0,(LPARAM)&item,nDBID))
             {
                 char szText[64] = "";
                 if(ITEM_FLOAT == item.btType)
@@ -527,8 +538,10 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
                 string += szText;
             }
         }
+    }
         break;
     case ITEM_FLOAT:
+    {
         char szText[64]="";
         try
         {
@@ -538,6 +551,7 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
             szText[0] = 0;
         }
         string = szText;
+    }
         break;
     default:
         break;
@@ -559,7 +573,7 @@ bool getPointName(ushort wStation,uchar btType,ushort wPoint,QString& string)//w
 {
     if(NULL == m_lpFormulaProc)
         return false;
-
+    int nDBID = 0;
     FORMULAPARAMETER parameter;
     parameter.wStation = wStation;
     parameter.btType = TYPE_NULL;
@@ -567,30 +581,34 @@ bool getPointName(ushort wStation,uchar btType,ushort wPoint,QString& string)//w
 
     STATION station;
     parameter.pBuffer = &station;
-    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter));
+    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
         return false;
     parameter.btType = btType;
     char szText[128] = "";
     switch (btType) {
     case TYPE_ANALOGUE:
+    {
         ANALOGUE analogue;
         parameter.pBuffer = &analogue;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter));
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
             return false;
 
         sprintf(szText,"%s%s",station.szStationName,analogue.szAnalogueName);
+    }
         break;
 
     case TYPE_DIGITAL:
+    {
         DIGITAL digital;
         parameter.pBuffer = &digital;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter));
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
             return false;
 
         sprintf(szText,"%s%s",station.szStationName,digital.szDigitalName);
+    }
         break;
 
-    case TYPE_PLUSE:
+    case TYPE_PULSE:
        /* PULSE analogue;
         parameter.pBuffer = &analogue;
         if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter));
@@ -638,7 +656,7 @@ ushort getDays(int year,int mon)//获得某年某月的天数
     case 11:
         wDay = 30;
     case 2:
-        wDay = bFlags?(wshort)29:(wshort)28;
+        wDay = bFlags?(ushort)29:(ushort)28;
         break;
     default:
         break;
@@ -724,7 +742,7 @@ FORMULARUN *getFormulaRun(ushort wNo)
     return (FORMULARUN*)m_FormulaRunList[wNo];
 }
 
-void getInputList(FORMULARUN* pFormulaRun,QList<FORMULACONDITION>* pList,int nDBID)
+void getInputList(FORMULARUN* pFormulaRun,QList<FORMULACONDITION*>* pList,int nDBID)
 {
     if(NULL == pFormulaRun || NULL == pList)
         return;
@@ -982,7 +1000,7 @@ void getRuleFailList(QList<FORMULACONDITION*> *pCondList,QStringList* pStrErrorL
     int wMaxGroupNo = 0;
     for(int i = 0; i < pCondList->count() ;i++)
     {
-        FORMULACONDITION* pFormulaCond = (FORMULACONDITION*)pCondList[i];
+        FORMULACONDITION* pFormulaCond = (FORMULACONDITION*)pCondList->at(i);
         if(NULL == pFormulaCond) continue;
         if(wMaxGroupNo < pFormulaCond->wGroupNo)
             wMaxGroupNo = pFormulaCond->wGroupNo;
@@ -1022,7 +1040,7 @@ void getRuleFailList(QList<FORMULACONDITION*> *pCondList,QStringList* pStrErrorL
                 }
                 else
                 {
-                    if(!getPointName(pFormulaCond->wStationA,TYPE_DIGITAL,pFormulaCond->wPointA,list))
+                    if(!getPointName(pFormulaCond->wStationA,TYPE_DIGITAL,pFormulaCond->wPointA,strPointErr))
                     {
                         strPointErr = QStringLiteral("未知遥信点");
                     }
@@ -1125,20 +1143,21 @@ bool getVirtualYxFailList(ushort wStation,uchar btType,ushort wPoint,uchar btVal
     list.clear();
     if(0 != btValue) return false;
     if(NULL == m_lpFormulaProc) return false;
+    int nDBID = 0;
     FORMULAPARAMETER param;
     param.wStation = wStation;
     param.wPoint = wPoint;
     param.btType = TYPE_NULL;
     STATION station;
     param.pBuffer = &station;
-    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&param))
+    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&param,nDBID))
         return false;
     param.btType = btType;
     if(TYPE_DIGITAL == btType)
     {
         DIGITAL digital;
         param.pBuffer = &digital;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&param)) return false;
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&param,nDBID)) return false;
         ushort wFormulaNo = digital.wFormulaID;
         if(wFormulaNo != 0 && wFormulaNo != (ushort)-1)
         {

@@ -2,7 +2,7 @@
 #define HFORMULA_H
 
 #include <QDialog>
-//#include "hformulapi.h"
+#include "hformulapi.h"
 namespace Ui {
 class Formula;
 }
@@ -13,7 +13,7 @@ class HFormulaDlg : public QDialog
 
 public:
     explicit HFormulaDlg(QWidget *parent = 0);
-    //HFormulaDlg(FORMULA* pFormula,QWidget *parent);
+    HFormulaDlg(FORMULA* pFormula,QWidget *parent = 0 );
     ~HFormulaDlg();
 
     void init();
@@ -90,7 +90,7 @@ protected:
     ushort wStation;
     ushort wProtect;
     uchar btType;
-    //FORMULA* m_pFormula;
+    FORMULA* m_pFormula;
 
 private:
     Ui::Formula *ui;

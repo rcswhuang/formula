@@ -1,6 +1,7 @@
 #include "hformulapi.h"
 #include "hformuladlg.h"
 #include "hformulaex.h"
+#include "hformuladlg.h"
 #include <QList>
 #include <QVector>
 #include <math.h>
@@ -13,7 +14,77 @@ ushort m_wStation = (ushort)-1;
 uchar m_btType = TYPE_NULL;
 uchar m_btFormulaModule = MODULE_ID;
 QString m_strFormulaText;
+LPFORMULAPROC m_lpFormulaProc = NULL;
+//各种属性结构
+HSTTYPEINFO HstTypeInfo[]=
+{
+     //btHst          szFace        minLen
+    {HSTTYPE_MONTH,    "1mon",        3},
+    {HSTTYPE_1MINUTE,  "1min",        2},
+    {HSTTYPE_5MINUTE,  "5min",        2},
+    {HSTTYPE_15MINUTE, "15min",       3},
+    {HSTTYPE_HOUR,     "1hour",       2},
+    {HSTTYPE_DAY,      "1day",        2},
+    {(uchar)-1,         NULL,         0}
+};
 
+ATTRINFO AnaAttrInfo[]=
+{
+  //wAttrib                       szAttrib
+  {ATTR_ANA_VALUE,                  "工程值"},
+  {ATTR_ANA_DAYMAXVALUE,            "日最大值"},
+  {ATTR_ANA_DAYMINVALUE,            "日最小值"},
+  {ATTR_ANA_DAYAVEVALUE,            "日平均值"},
+  {ATTR_ANA_MONMAXVALUE,            "月最大值"},
+  {ATTR_ANA_MONMINVALUE,            "月最大值"},
+  {ATTR_ANA_MONAVEVALUE,            "月最大值"},
+  {ATTR_VOLTAGE_DAYNORMALTIME,		"日正常时间"},
+  {ATTR_VOLTAGE_DAYLOWTIME, 		"日越下限时间"},
+  {ATTR_VOLTAGE_DAYHIGHTIME,		"日越上限时间"},
+  {ATTR_VOLTAGE_MONNORMALTIME,	    "月正常时间"},
+  {ATTR_VOLTAGE_MONLOWTIME, 	    "月越下限时间"},
+  {ATTR_VOLTAGE_MONHIGHTIME,        "月越上限时间"},
+  {ATTR_VOLTAGE_DAYQUALIFIEDRATE,   "日合格率"},
+  {ATTR_VOLTAGE_MONQUALIFIEDRATE,   "月合格率"},
+  {0,                                NULL}
+};
+
+//遥信属性
+ATTRINFO DgtAttrInfo[]=
+{
+   {ATTR_DGT_VALUE,                 "工程值"},
+   {ATTR_DGT_TOTALNORMALCLOSE,      "正常合闸总数"},
+   {ATTR_DGT_TOTALNORMALOPEN,       "正常分闸总数"},
+   {ATTR_DGT_TOTALFAULTSWITCH,      "事故变位总数"},
+   {ATTR_DGT_DAYNORMALCLOSE,        "日正常合闸次数"},
+   {ATTR_DGT_DAYNORMALOPEN,         "日正常分闸次数"},
+   {ATTR_DGT_DAYFAULTSWITCH,		"日事故变位次数"},
+   {ATTR_DGT_MONNORMALCLOSE,        "月正常合闸次数"},
+   {ATTR_DGT_MONNORMALOPEN,         "月正常分闸次数"},
+   {ATTR_DGT_MONFAULTSWITCH,		"月事故变位次数"},
+   {ATTR_DGT_YEARNORMALCLOSE,       "年正常合闸次数"},
+   {ATTR_DGT_YEARNORMALOPEN,        "年正常分闸次数"},
+   {ATTR_DGT_YEARFAULTSWITCH,       "年事故变位次数"},
+   {0,                                NULL}
+};
+
+//遥脉属性
+ATTRINFO PulAttrInfo[]=
+{
+    {ATTR_PUL_RAW,             "原始值"},
+    {ATTR_PUL_COUNTERVALUE,    "工程值"},
+    {ATTR_PUL_COUNTERMIN,      "分钟电量"},
+    {ATTR_PUL_COUNTERHOUR,     "小时电量"},
+    {ATTR_PUL_COUNTERDAY,      "日总电量"},
+    {ATTR_PUL_COUNTERMON,      "月总电量"},
+    {ATTR_POWER_DAYPEKVALUE,   "日峰电量"},
+    {ATTR_POWER_DAYVOLVALUE,   "日谷电量"},
+    {ATTR_POWER_DAYPINVALUE,   "日平电量"},
+    {ATTR_POWER_MONPEKVALUE,   "月峰电量"},
+    {ATTR_POWER_MONVOLVALUE,   "月谷电量"},
+    {ATTR_POWER_MONPINVALUE,   "月平电量"},
+    {0,                          NULL   },
+};
 
 //初始化Formula
 bool FORMULA_EXPORT initFormula(LPFORMULAPROC lpFormulaProc,uchar btModuleType /*= MODULE_ID*/)
@@ -66,7 +137,7 @@ bool FORMULA_EXPORT saveFormulaData()
     FORMULAITEMLIST param;
     param.pFormulaList = &m_FormulaList;
     param.pItemList = &m_ItemList;
-    if(!m_lpFormulaProc(FM_SAVEFORMULALIST,0,(LPARAM)&param))
+    if(!m_lpFormulaProc(FM_SAVEFORMULALIST,0,(LPARAM)&param,0))//huangw
     {
         m_bModified = false;
         return true;
@@ -105,7 +176,7 @@ bool FORMULA_EXPORT addFormula(FORMULA* pFormula,ushort wNo,uchar btType /*= FOR
         pNewFormula->wMessage = (ushort)-1;
         pNewFormula->btType = btType;
 
-        if(!InsertFormula(pNewFormula))
+        if(!insertFormula(pNewFormula))
         {
             delete pNewFormula;
             pNewFormula = NULL;
@@ -113,7 +184,7 @@ bool FORMULA_EXPORT addFormula(FORMULA* pFormula,ushort wNo,uchar btType /*= FOR
     }
     //pNewFormula是插入的公式里面的对象，pFormula是另外一个对象，pFormula和pNewFormula是一模一样的两个对象
     memcpy(pNewFormula->wFormula,pFormula->wFormula,sizeof(ushort)*FORMULALEN);
-    pNewFormula->btType = btTyp;
+    pNewFormula->btType = btType;
     pFormula->wNo = pNewFormula->wNo;
 
     m_bModified = true;
@@ -163,7 +234,7 @@ bool FORMULA_EXPORT compileFormula(const char* szFormula,FORMULA* pFormula)//编
 
 }
 
-const char* FORMULA_EXPORT getFormulaText(FORMULA* pFormula,bool bValue)
+QString FORMULA_EXPORT getFormulaText(FORMULA* pFormula,bool bValue)
 {
     if(!m_bFormula || NULL == pFormula)
         return NULL;
@@ -185,7 +256,7 @@ const char* FORMULA_EXPORT getFormulaText(FORMULA* pFormula,bool bValue)
         return m_strFormulaText;
 
     uchar btHstType = (uchar)-1;
-    int top = 0; k = 0;
+    int top = 0,k = 0;
     //注意公式是栈模式操作，栈内(数组)从后面开始入栈，一直往前放数据
     while(k < FORMULALEN && pFormula->wFormula[k] != 0)//逐个进行分析
     {
@@ -394,9 +465,9 @@ void FORMULA_EXPORT replaceFormulaItem(FORMULA* pFormula,ITEM* pOld,ITEM* pNew)
 {
     if(NULL == pFormula || NULL == pOld || NULL == pNew)
         return;
-    for(int i = 0; i < pFormula->wFormula != 0 && i < FORMULALEN;i++)
+    for(int i = 0;  pFormula->wFormula[i] != 0 && i < FORMULALEN;i++)
     {
-        wNo = pFormula->wFormula[i];
+        ushort wNo = pFormula->wFormula[i];
         if(ISFORMULAITEM(wNo))
         {
             ITEM* item = getItem(wNo,&m_ItemList);
@@ -441,9 +512,9 @@ void FORMULA_EXPORT onFormulaIdle()
         return;
 }
 
-bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uchar btEType,QList<FORMULACONDITION*>* &pList,int nDBID)
+bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uchar btEType,QList<FORMULACONDITION*>* pList,int nDBID)
 {
-    if(!m_bFormula || NULL == item || bHst || NULL = ptm || NULL == m_lpFormulaProc)
+    if(!m_bFormula || NULL == item || bHst || NULL == ptm || NULL == m_lpFormulaProc)
         return false;
     FORMULARUN *pFormulaRun = getFormulaRun(wNo);
     if(NULL == pFormulaRun)
@@ -471,6 +542,7 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
             case ITEM_ANALOGUE:
             case ITEM_DIGITAL:
             case ITEM_PULSE:
+            {
                 FORMULAPARAMETER param;
                 param.wStation = pItem->DbWord.wStation;
                 param.wPoint = pItem->DbWord.wPoint;
@@ -482,17 +554,19 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                     param.btType = TYPE_DIGITAL;
                 else if(ITEM_PULSE == pItem->btType)
                     param.btType = TYPE_PULSE;
-                if(!m_lpFormulaProc(bHst?FM_GETHSTATTR:FM_GETDBATTR,0,(LPARAM)&param),nDBID)
+                if(!m_lpFormulaProc((bHst?FM_GETHSTATTR:FM_GETDBATTR),0,(LPARAM)&param,nDBID))
                     return false;
                 top++;
+            }
                 break;
 
             case ITEM_ANAHST:
             case ITEM_PULHST:
+            {
                 if(ItemValue[top-1].btType != ITEM_TIME)
                     return false;
                 struct tm tmHst;
-                memset(tmHst,0,sizeof(struct tm));
+                memset(&tmHst,0,sizeof(struct tm));
                 tmHst.tm_year = ItemValue[top-1].ItemTime.year;
                 tmHst.tm_mon = ItemValue[top-1].ItemTime.mon;
                 tmHst.tm_min = ItemValue[top-1].ItemTime.min;
@@ -504,16 +578,17 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                 param.wPoint = pItem->DbWord.wPoint;
                 param.wAttrib = pItem->DbWord.wAttrib;
                 param.pItem = &ItemValue[top-1];
-                param.ptm1 = tmHst;
+                param.ptm1 = &tmHst;
                 param.btType = TYPE_ANALOGUE;
-                if(TYPE_PLUSE == pItem->btType)
-                    param.btType = TYPE_PLUSE;
-                if(!m_lpFormulaProc(FM_GETHSTATTR,0,(LPARAM)&param))
+                if(TYPE_PULSE == pItem->btType)
+                    param.btType = TYPE_PULSE;
+                if(!m_lpFormulaProc(FM_GETHSTATTR,0,(LPARAM)&param,nDBID))
                     return false;
 
                 break;
-
+            }
             case ITEM_TIME:
+             {
                 ItemValue[top++] = *pItem;
                 bool bAdjusted =false;
                 int year = 0,mon = 0,day = 0,hour=0,min=0;
@@ -550,16 +625,20 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                 if(bAdjusted)
                     adjustTime(&ItemValue[top-1],year,mon,day,hour,min);
                 break;
+            }
             case ITEM_FLOAT:
             case ITEM_BOOLEAN:
+            {
                 ItemValue[top++] = *pItem;
                 break;
+            }
 
             case ITEM_ANATIME:
             case ITEM_PULTIME:
+            {
                 ItemValue[top++] = *pItem;
                 break;
-
+            }
             default:
                 return false;
             }
@@ -627,12 +706,12 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                     return false;
                 break;
             case OP_MULTIPLY:
-                if(ITEM_BOOLEAN = ItemValue[top-2].btType)
+                if(ITEM_BOOLEAN == ItemValue[top-2].btType)
                 {
                     ItemValue[top-2].fValue = (float)ItemValue[top-2].bValue;
                     ItemValue[top-2].btType = ITEM_FLOAT;
                 }
-                if(ITEM_BOOLEAN = ItemValue[top-1].btType)
+                if(ITEM_BOOLEAN == ItemValue[top-1].btType)
                 {
                     ItemValue[top-1].fValue = (float)ItemValue[top-1].bValue;
                     ItemValue[top-1].btType = ITEM_FLOAT;
@@ -690,12 +769,12 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                     return false;
                 break;
             case OP_EQUAL:
-                if(ITEM_BOOLEAN = ItemValue[top-2].btType)
+                if(ITEM_BOOLEAN == ItemValue[top-2].btType)
                 {
                     ItemValue[top-2].fValue = (float)ItemValue[top-2].bValue;
                     ItemValue[top-2].btType = ITEM_FLOAT;
                 }
-                if(ITEM_BOOLEAN = ItemValue[top-1].btType)
+                if(ITEM_BOOLEAN == ItemValue[top-1].btType)
                 {
                     ItemValue[top-1].fValue = (float)ItemValue[top-1].bValue;
                     ItemValue[top-1].btType = ITEM_FLOAT;
@@ -730,12 +809,12 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                     return false;
                 break;
             case OP_NEQUAL:
-                if(ITEM_BOOLEAN = ItemValue[top-2].btType)
+                if(ITEM_BOOLEAN == ItemValue[top-2].btType)
                 {
                     ItemValue[top-2].fValue = (float)ItemValue[top-2].bValue;
                     ItemValue[top-2].btType = ITEM_FLOAT;
                 }
-                if(ITEM_BOOLEAN = ItemValue[top-1].btType)
+                if(ITEM_BOOLEAN == ItemValue[top-1].btType)
                 {
                     ItemValue[top-1].fValue = (float)ItemValue[top-1].bValue;
                     ItemValue[top-1].btType = ITEM_FLOAT;
@@ -750,12 +829,12 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                     return false;
                 break;
             case OP_AND:
-                if(ITEM_FLOAT = ItemValue[top-2].btType)
+                if(ITEM_FLOAT == ItemValue[top-2].btType)
                 {
                     ItemValue[top-2].bValue = (uchar)(ItemValue[top-2].fValue+0.5f);
                     ItemValue[top-2].btType = ITEM_BOOLEAN;
                 }
-                if(ITEM_FLOAT = ItemValue[top-1].btType)
+                if(ITEM_FLOAT == ItemValue[top-1].btType)
                 {
                     ItemValue[top-1].bValue = (uchar)(ItemValue[top-1].bValue+0.5f);
                     ItemValue[top-1].btType = ITEM_BOOLEAN;
@@ -768,12 +847,12 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                     return false;
                 break;
             case OP_OR:
-                if(ITEM_FLOAT = ItemValue[top-2].btType)
+                if(ITEM_FLOAT == ItemValue[top-2].btType)
                 {
                     ItemValue[top-2].bValue = (uchar)(ItemValue[top-2].fValue+0.5f);
                     ItemValue[top-2].btType = ITEM_BOOLEAN;
                 }
-                if(ITEM_FLOAT = ItemValue[top-1].btType)
+                if(ITEM_FLOAT == ItemValue[top-1].btType)
                 {
                     ItemValue[top-1].bValue = (uchar)(ItemValue[top-1].bValue+0.5f);
                     ItemValue[top-1].btType = ITEM_BOOLEAN;
@@ -786,12 +865,12 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                     return false;
                 break;
             case OP_XOR:
-                if(ITEM_FLOAT = ItemValue[top-2].btType)
+                if(ITEM_FLOAT == ItemValue[top-2].btType)
                 {
                     ItemValue[top-2].fValue = (uchar)(ItemValue[top-2].fValue+0.5f);
                     ItemValue[top-2].btType = ITEM_BOOLEAN;
                 }
-                if(ITEM_FLOAT = ItemValue[top-1].btType)
+                if(ITEM_FLOAT == ItemValue[top-1].btType)
                 {
                     ItemValue[top-1].fValue = (uchar)(ItemValue[top-1].bValue+0.5f);
                     ItemValue[top-1].btType = ITEM_BOOLEAN;
@@ -813,7 +892,7 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
         {
 
         }
-        if(ISMULTIFUNCTION(wNO))//Max(A,B) //2个
+        if(ISMULTIFUNCTION(wNo))//Max(A,B) //2个
         {
             if(k > FORMULALEN || 0 == pFormula->wFormula[k])
                 return false;
@@ -821,7 +900,7 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
             if((ushort)top < wNum)//读取存放Max,Min等里面个数  栈内存放位置:A,B,MAX,2 -->top = 2,wNum = 2
                 return false;
             int i = top - wNum;//top此时已经移动到MAX这个位置
-            for(j = i; j < top;j++)
+            for(int j = i; j < top;j++)
                 if(ITEM_FLOAT != ItemValue[j].btType)
                     return false;
             switch(wNo)
@@ -890,7 +969,7 @@ bool FORMULA_EXPORT doRuleFormula(ushort wNo,QStringList* pList,int nDBID )
     ITEM item;
     memset(&item,0,sizeof(ITEM));
     bool bValue = false;
-    bool bResult = doFormula(wNo,item,false,NULL,FORMULATYPE_TWO,&pCondList);
+    bool bResult = doFormula(wNo,&item,false,NULL,FORMULATYPE_TWO,&pCondList);
     if(!bResult)
     {
         QString szMsg = QStringLiteral("规则执行失败，请检查规则组态");
@@ -933,7 +1012,7 @@ bool FORMULA_EXPORT checkRuleFormulaConflict(ushort wNo,ushort wStation,ushort w
 
     for(k = 0; k < pItemList.count();k++)
     {
-        ITEM* item = (ITEM*)pItemList[i];
+        ITEM* item = (ITEM*)pItemList[k];
         if(NULL == item) continue;
         if(ITEM_DIGITAL != item->btType) continue;
         if(item->DbWord.wStation == (ushort)-1 || item->DbWord.wPoint == (ushort)-1)

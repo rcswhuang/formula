@@ -3,6 +3,7 @@
 #include "hformulaexport.h"
 #include "publicdata.h"
 #include <QList>
+#include <QString>
 typedef unsigned int WPARAM;
 typedef long LPARAM;
 
@@ -75,14 +76,14 @@ typedef struct _tagITEM
         bool bValue;
         float fValue;
 
-        struct _tagDbWord
+        struct
         {
           ushort wStation;
           ushort wPoint;
           ushort wAttrib;
         }DbWord;
 
-        struct _tagItemTime
+        struct
         {
           char year;
           char mon;
@@ -210,76 +211,7 @@ typedef struct _tagFORMULAITEMLIST
 #define ISFUNCTION(n)        (((ushort)n) >= 0x8020 && ((ushort)n) < 0x8030)
 #define ISMULTIFUNCTION(n)   (((ushort)n) >= 0x8030)
 
-//各种属性结构
-HSTTYPEINFO HstTypeInfo[]=
-{  
-	 //btHst          szFace        minLen
-	{HSTTYPE_MONTH,    "1mon",        3},
-	{HSTTYPE_1MINUTE,  "1min",        2},
-	{HSTTYPE_5MINUTE,  "5min",        2},
-	{HSTTYPE_15MINUTE, "15min",       3},
-	{HSTTYPE_HOUR,     "1hour",       2},
-	{HSTTYPE_DAY,      "1day",        2},
-	{(uchar)-1,         NULL,         0}
-};
 
-ATTRINFO AnaAttrInfo[]=
-{
-  //wAttrib                       szAttrib
-  {ATTR_ANA_VALUE,                  "工程值"},
-  {ATTR_ANA_DAYMAXVALUE,            "日最大值"},
-  {ATTR_ANA_DAYMINVALUE,            "日最小值"},
-  {ATTR_ANA_DAYAVEVALUE,            "日平均值"},
-  {ATTR_ANA_MONMAXVALUE,            "月最大值"}, 
-  {ATTR_ANA_MONMINVALUE,            "月最大值"}, 
-  {ATTR_ANA_MONAVEVALUE,            "月最大值"}, 
-  {ATTR_VOLTAGE_DAYNORMALTIME,		"日正常时间"},
-  {ATTR_VOLTAGE_DAYLOWTIME, 		"日越下限时间"},
-  {ATTR_VOLTAGE_DAYHIGHTIME,		"日越上限时间"},
-  {ATTR_VOLTAGE_MONNORMALTIME,	    "月正常时间"},	
-  {ATTR_VOLTAGE_MONLOWTIME, 	    "月越下限时间"},
-  {ATTR_VOLTAGE_MONHIGHTIME,        "月越上限时间"},	
-  {ATTR_VOLTAGE_DAYQUALIFIEDRATE,   "日合格率"},
-  {ATTR_VOLTAGE_MONQUALIFIEDRATE,   "月合格率"},
-  {0,                                NULL}	
-};
-
-//遥信属性
-ATTRINFO DgtAttrInfo[]=
-{
-   {ATTR_DGT_VALUE,                 "工程值"},
-   {ATTR_DGT_TOTALNORMALCLOSE,      "正常合闸总数"},
-   {ATTR_DGT_TOTALNORMALOPEN,       "正常分闸总数"},
-   {ATTR_DGT_TOTALFAULTSWITCH,      "事故变位总数"},
-   {ATTR_DGT_DAYNORMALCLOSE,        "日正常合闸次数"},
-   {ATTR_DGT_DAYNORMALOPEN,         "日正常分闸次数"},
-   {ATTR_DGT_DAYFAULTSWITCH,		"日事故变位次数"},
-   {ATTR_DGT_MONNORMALCLOSE,        "月正常合闸次数"},
-   {ATTR_DGT_MONNORMALOPEN,         "月正常分闸次数"},
-   {ATTR_DGT_MONFAULTSWITCH,		"月事故变位次数"},
-   {ATTR_DGT_YEARNORMALCLOSE,       "年正常合闸次数"},
-   {ATTR_DGT_YEARNORMALOPEN,        "年正常分闸次数"},
-   {ATTR_DGT_YEARFAULTSWITCH,       "年事故变位次数"},
-   {0,                                NULL}
-};
-
-//遥脉属性
-ATTRINFO PulAttrInfo[]=
-{
-    {ATTR_PUL_RAW,             "原始值"},
-    {ATTR_PUL_COUNTERVALUE,    "工程值"},
-	{ATTR_PUL_COUNTERMIN,      "分钟电量"},
-	{ATTR_PUL_COUNTERHOUR,     "小时电量"},
-	{ATTR_PUL_COUNTERDAY,      "日总电量"},
-	{ATTR_PUL_COUNTERMON,      "月总电量"},
-	{ATTR_POWER_DAYPEKVALUE,   "日峰电量"},
-	{ATTR_POWER_DAYVOLVALUE,   "日谷电量"},
-	{ATTR_POWER_DAYPINVALUE,   "日平电量"},
-	{ATTR_POWER_MONPEKVALUE,   "月峰电量"},
-	{ATTR_POWER_MONVOLVALUE,   "月谷电量"},
-	{ATTR_POWER_MONPINVALUE,   "月平电量"},
-	{0,                          NULL   },
-};
 
 //定义公式项类型
 #define ITEM_NULL      0
@@ -296,8 +228,7 @@ ATTRINFO PulAttrInfo[]=
 #define ITEM_RELAY     11 //遥控项
 #define ITEM_TUNE      12 //
 //回调函数
-typedef bool (FORMULA_EXPORT *LPFORMULAPROC)(int nMsgType,WPARAM wParam,LPARAM lParam,int nDBID = 0);
-LPFORMULAPROC m_lpFormulaProc = NULL;
+typedef bool (FORMULA_EXPORT *LPFORMULAPROC)(int nMsgType,WPARAM wParam,LPARAM lParam,int nDBID);
 
 bool FORMULA_EXPORT initFormula(LPFORMULAPROC lpFormulaProc,uchar btModuleType = MODULE_ID);
 void FORMULA_EXPORT exitFormula();
@@ -316,11 +247,11 @@ void FORMULA_EXPORT deleteFormula(ushort wNo);
 bool FORMULA_EXPORT createFormula(FORMULA* pFormula,ushort wNo);//创建某个测点wNo的公式
 bool FORMULA_EXPORT compileFormula(const char* szFormula,FORMULA* pFormula);//编译公式
 
-const char* FORMULA_EXPORT getFormulaText(FORMULA* formula,bool bValue);
+QString FORMULA_EXPORT getFormulaText(FORMULA* formula,bool bValue);
 void FORMULA_EXPORT replaceFormulaItem(FORMULA* pFormula,ITEM* pOld,ITEM* pNew);
 void FORMULA_EXPORT onFormulaIdle();
 
-bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uchar btEType = ITEM_NULL,QList<FORMULACONDITION*>* &pList = NULL,int nDBID = 0);
+bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uchar btEType = ITEM_NULL,QList<FORMULACONDITION*>* pList = NULL,int nDBID = 0);
 bool FORMULA_EXPORT doRuleFormula(ushort wNo,QStringList* pList = NULL,int nDBID = 0);
 bool FORMULA_EXPORT checkRuleFormulaConflict(ushort wNo,ushort wStation,ushort wDigitalNo);
 
