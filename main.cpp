@@ -1,5 +1,4 @@
 #include <QApplication>
-#include "hformuladlg.h"
 #include <QFile>
 #include <QTextStream>
 int main(int argc,char *argv[])
@@ -17,7 +16,7 @@ int main(int argc,char *argv[])
 
     //QString strBtnQss = ":/qss/qpushbutton.qss";
     //app.setStyleSheet(strBtnQss);
-    HFormulaDlg dlg;
-    dlg.exec();
+    //HFormulaDlg dlg;
+    //dlg.exec();
     return app.exec();
 }

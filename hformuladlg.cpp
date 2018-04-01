@@ -653,12 +653,14 @@ void HFormulaDlg::idc1Mon_clicked()//1Month()
 
 void HFormulaDlg::redo()
 {
-
+    QTextDocument* doc = ui->IDC_EDIT->document();
+    doc->redo();
 }
 
 void HFormulaDlg::undo()
 {
-
+    QTextDocument* doc = ui->IDC_EDIT->document();
+    doc->undo();
 }
 
 void HFormulaDlg::setStation(ushort station)
@@ -703,7 +705,6 @@ void HFormulaDlg::onStationChanged_clicked()
     }
 
     btType = ui->IDC_TYPE->currentData().toUInt();
-
     if(-1 != btType)
     {
         setPointList(wStation,btType);
@@ -798,7 +799,7 @@ void HFormulaDlg::onListWidget_doubleClicked()
 
 void HFormulaDlg::setPointList(ushort wStation, uchar btType)
 {
- /*   ui->IDC_LIST->clear();
+    ui->IDC_LIST->clear();
     ANALOGUE analogue;
     DIGITAL digital;
 
@@ -810,7 +811,7 @@ void HFormulaDlg::setPointList(ushort wStation, uchar btType)
     {
     case TYPE_ANALOGUE:
         Param.pBuffer = &analogue;
-        for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,&Param);Param.wPoint++)
+        for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)
         {
             if(analogue.wGroupID == wProtect){
                 QListWidgetItem* item = new QListWidgetItem(ui->IDC_LIST);
@@ -822,7 +823,7 @@ void HFormulaDlg::setPointList(ushort wStation, uchar btType)
         break;
     case TYPE_DIGITAL:
         Param.pBuffer = &digital;
-        for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,&Param);Param.wPoint++)
+        for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)
         {
             if(digital.wGroupID == wProtect){
                 QListWidgetItem* item = new QListWidgetItem(ui->IDC_LIST);
@@ -832,7 +833,7 @@ void HFormulaDlg::setPointList(ushort wStation, uchar btType)
             }
         }
         break;
-    }*/
+    }
 }
 
 void HFormulaDlg::updateAttrib()
@@ -843,7 +844,7 @@ void HFormulaDlg::updateAttrib()
         if(AttrInfos[i].btType == btType)
         {
             ATTRINFO *attrInfo = AttrInfos[i].pAttrInfo;
-            for(int j = 0; j < attrInfo[j].szAttrib != NULL;j++)
+            for(int j = 0; attrInfo[j].szAttrib != NULL;j++)
             {
                 ui->IDC_ATTRIB->addItem(attrInfo[j].szAttrib,attrInfo[j].wAttrib);
             }

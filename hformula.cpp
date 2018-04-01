@@ -456,7 +456,6 @@ QString FORMULA_EXPORT getFormulaText(FORMULA* pFormula,bool bValue)
             continue;
         }
     }
-
     return m_strFormulaText;
 }
 

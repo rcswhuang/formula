@@ -11,12 +11,14 @@ HEADERS       = \
     hformulaexport.h \
     hformuladlg.h \
     hformulapi.h \
-    hformulaex.h
+    hformulaex.h \
+    expr.h
 
 SOURCES       = \
     hformuladlg.cpp \
     hformula.cpp \
-    hformulaex.cpp
+    hformulaex.cpp \
+    expr.cpp
 
 RESOURCES     = \
     styleqss.qrc
