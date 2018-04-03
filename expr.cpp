@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 
-//#include "datafile.h"
+//#include "publicdata.h"
 #include "hformulapi.h"
 //#include "formula.h"
 #include "expr.h"
@@ -22,8 +22,8 @@ int k;
 CPtrList* pItemList;
 ITEMDATA* pItemData;
 
-POSITION pos;
-BOOL bCheck;
+//POSITION pos;
+bool bCheck;
 
 FORMULA* pFormula;
 int len;
@@ -71,13 +71,13 @@ void GetErrPos( int& nLine, int& nPos )
 	nPos = k; 
 } 
 
-BOOL CheckMin( ITEM* pItem )
+bool CheckMin( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
 	{
 		if ( fValue > 127 || fValue < -128 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.min = (char)fValue;
 		pItem->ItemTime.flag = ITEMTIME_MIN;
@@ -85,22 +85,22 @@ BOOL CheckMin( ITEM* pItem )
 	else
 	{
 		if ( fValue < 0 || fValue > 59 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.min = (char)fValue;
 		pItem->ItemTime.flag = 0;
 	}
 
-	return TRUE;
+    return true;
 }
 
-BOOL CheckHour( ITEM* pItem )
+bool CheckHour( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
 	{
 		if ( fValue > 127 || fValue < -128 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.hour = (char)fValue;
 		pItem->ItemTime.flag = ITEMTIME_HOUR;
@@ -108,22 +108,22 @@ BOOL CheckHour( ITEM* pItem )
 	else
 	{
 		if ( fValue < 0 || fValue > 23 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.hour = (char)fValue;
 		pItem->ItemTime.flag = 0;
 	}
 
-	return TRUE;
+    return true;
 }
 
-BOOL CheckDay( ITEM* pItem )
+bool CheckDay( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
 	{
 		if ( fValue > 127 || fValue < -128 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.day = (char)fValue;
 		pItem->ItemTime.flag = ITEMTIME_DAY;
@@ -131,7 +131,7 @@ BOOL CheckDay( ITEM* pItem )
 	else
 	{
 		if ( fValue < 1 || fValue > 31 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.day = (char)fValue;
 		pItem->ItemTime.flag = 0;
@@ -140,13 +140,13 @@ BOOL CheckDay( ITEM* pItem )
 	return TRUE;
 }
 
-BOOL CheckMon( ITEM* pItem )
+bool CheckMon( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
 	{
 		if ( fValue > 127 || fValue < -128 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.mon = (char)fValue;
 		pItem->ItemTime.flag = ITEMTIME_MON;
@@ -154,22 +154,22 @@ BOOL CheckMon( ITEM* pItem )
 	else
 	{
 		if ( fValue < 1 || fValue > 12 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.mon = (char)( fValue - 1 );
 		pItem->ItemTime.flag = 0;
 	}
 
-	return TRUE;
+    return true;
 }
 
-BOOL CheckYear( ITEM* pItem )
+bool CheckYear( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
 	{
 		if ( fValue > 127 || fValue < -128 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.year = (char)fValue;
 		pItem->ItemTime.flag = ITEMTIME_YEAR;
@@ -177,16 +177,16 @@ BOOL CheckYear( ITEM* pItem )
 	else
 	{
 		if ( fValue < 1900 || fValue > 2155 )
-			return FALSE;
+            return false;
 
 		pItem->ItemTime.year = (char)( fValue - 1900 );
 		pItem->ItemTime.flag = 0;
 	}
 
-	return TRUE;
+    return true;
 }
 
-BOOL GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem )
+bool GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem )
 {
 	STATION station;
 	if ( NULL == m_lpFormulaProc )
@@ -251,7 +251,7 @@ BOOL GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 					return TRUE;
 				}
 			}
-
+/*
 			Param.pBuffer = &pulse;
 			Param.btType = TYPE_PULSE;
 
@@ -286,17 +286,18 @@ BOOL GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 				}
 			}
 
-			break;
+            break;*/
 		}
 	}
 
-	return FALSE;
+    return false;
 }
 
-BOOL GetFormulaItemForGIN( char* pStName/*厂站名*/, char* pPtName/*装置名*/, char* pAttrName/*测点名*/, ITEM* pItem )
+//从装置里面获取的 暂时不用
+bool GetFormulaItemForGIN( char* pStName/*厂站名*/, char* pPtName/*装置名*/, char* pAttrName/*测点名*/, ITEM* pItem )
 {
-	if ( NULL == m_lpFormulaProc )
-		return FALSE;
+/*	if ( NULL == m_lpFormulaProc )
+        return false;
 
 	//station;
 	STATION station;
@@ -312,8 +313,8 @@ BOOL GetFormulaItemForGIN( char* pStName/*厂站名*/, char* pPtName/*装置名*
 			pItem->DbWord.wStation = station.wStationID;
 			Param.wStation = station.wStationID;
 			
-			//device
-			PROTECTDEVICEINFO protdevice;
+            //间隔
+            EQUIPMENTGROUP protdevice;
 			FORMULAPARAMETER Param1;
 			Param1.wStation = station.wStationID;
 			Param1.btType = TYPE_PROTECT;
@@ -341,7 +342,7 @@ BOOL GetFormulaItemForGIN( char* pStName/*厂站名*/, char* pPtName/*装置名*
 							pItem->DbWord.wStation = station.wStationID;
 							pItem->DbWord.wPoint = analogue.wNo;
 							pItem->DbWord.wAttrib = protdevice.wProtectID;
-							return TRUE;
+                            return true;
 						}
 					}
 
@@ -358,7 +359,7 @@ BOOL GetFormulaItemForGIN( char* pStName/*厂站名*/, char* pPtName/*装置名*
 							pItem->DbWord.wPoint = digital.wNo;
 							pItem->DbWord.wAttrib = protdevice.wProtectID;
 
-							return TRUE;
+                            return true;
 						}
 					}
 
@@ -375,15 +376,15 @@ BOOL GetFormulaItemForGIN( char* pStName/*厂站名*/, char* pPtName/*装置名*
 							pItem->DbWord.wPoint = pulse.wNo;
 							pItem->DbWord.wAttrib = protdevice.wProtectID;
 
-							return TRUE;
+                            return true;
 						}
 					}
 				}
 			}
 
 		}
-	}
-	return FALSE;
+    }*/
+    return false;
 }
 
 void SkipBlank()
@@ -393,14 +394,18 @@ void SkipBlank()
 		k++;
 }
 
-BOOL GetDbItem( ITEM* pItem )
+/*
+ * 通过对szExpr分析获取站名，点名，属性名，从而获取ITEM信息
+*/
+bool GetDbItem( ITEM* pItem )
 {
 	SkipBlank();
 	if ( HEADER_SIGN != szExpr[ k ] )
-		return FALSE;
+        return false;
 
+    //站名.点名.属性名 可以采用QString类来分析
 	const char *p = szExpr + k, *q, *r;
-	char szStName[STNAMELEN], szPtName[PTNAMELEN+EQUNAMELEN+1], szAttrName[MAXATTRNAMELEN] = "";
+    char szStName[STATIONNAMELEN], szPtName[PTNAMELEN+EQUIPMENTLEN+1], szAttrName[MAXATTRNAMELEN] = "";
 
 	q = strchr( p + 1, '.' );
 	if ( NULL == q || q - p > STNAMELEN )
@@ -443,24 +448,24 @@ BOOL GetDbItem( ITEM* pItem )
 	if(m_pFormulaModule == MODULE_DEVGIN)
 	{
 		if ( !GetFormulaItemForGIN( szStName, szPtName, szAttrName, pItem ) )
-			return FALSE;
+            return false;
 	}
 	else
 	{
 		if ( !GetFormulaItem( szStName, szPtName, szAttrName, pItem ) )
-			return FALSE;
+            return false;
 	}
 
 	k += r - p + 1;
-	return TRUE;
+    return true;
 }
 
 //对数字量构建一个ITEM，注意数字都是FLOAT
-BOOL GetNumberItem( ITEM* pItem )
+bool GetNumberItem( ITEM* pItem )
 {
 	SkipBlank();
 	if ( !isdigit( szExpr[ k ] ) && '.' != szExpr[ k ] )
-		return FALSE;
+        return false;
 
 	char buf[ BUFSIZE + 1 ], *cp = buf;
 	int dot = 0;
@@ -486,23 +491,19 @@ BOOL GetNumberItem( ITEM* pItem )
 	*cp = '\0';
 	pItem->btType = ITEM_FLOAT;
 
-	TRY {
+    {
 		pItem->fValue = (float)atof( buf );
 	}
-	CATCH(CException, e)
-	{
-		return FALSE;
-	}
-	END_CATCH
+
 
 	if ( pItem->fValue < 0 )
-		return FALSE;
+        return false;
 
 	SkipBlank();
-	return TRUE;
+    return true;
 }
 
-BOOL GetExtendNumberItem( ITEM* pItem )
+bool GetExtendNumberItem( ITEM* pItem )
 {
 	SkipBlank();
 	if ( isdigit( szExpr[ k ] ) || '.' == szExpr[ k ] )
@@ -527,13 +528,13 @@ BOOL GetExtendNumberItem( ITEM* pItem )
 		pItem->btType = ITEM_TIME;
 		SkipBlank();
 
-		return TRUE;
+        return true;
 	}
 
-	return FALSE;
+    return false;
 }
 
-BOOL GetTimeItem( ITEM* pItem )
+bool GetTimeItem( ITEM* pItem )
 {
 	ITEM itemYear, itemMon, itemDay, itemHour, itemMin;
 	if ( '[' != szExpr[ k++ ] || !GetExtendNumberItem( &itemYear ) ||
@@ -555,10 +556,10 @@ BOOL GetTimeItem( ITEM* pItem )
 	pItem->ItemTime.hour = itemHour.ItemTime.hour;
 	pItem->ItemTime.min = itemMin.ItemTime.min;
 	pItem->ItemTime.flag = itemYear.ItemTime.flag |
-		itemMon.ItemTime.flag | itemDay.ItemTime.flag |
-		itemHour.ItemTime.flag | itemMin.ItemTime.flag;
+    itemMon.ItemTime.flag | itemDay.ItemTime.flag |
+    itemHour.ItemTime.flag | itemMin.ItemTime.flag;
 
-	return TRUE;
+    return true;
 }
 
 yylex()    /* lexical analysis routine */
@@ -722,7 +723,7 @@ yylex()    /* lexical analysis routine */
 	return szExpr[ k++ ];
 }
 
-int Action1( WORD wOp )
+int Action1( ushort wOp )
 {
 	if ( len >= FORMULALEN )
 	{
@@ -763,10 +764,10 @@ int Action2( ITEM& item )
 	return 0;
 }
 
-BOOL _compile_formula( const char* pszFormulaExpr, FORMULA* formula, CPtrList* pList, BOOL check )
+bool _compile_formula( const char* pszFormulaExpr, FORMULA* formula, CPtrList* pList, BOOL check )
 {
-	ASSERT( pszFormulaExpr != NULL );
-	ASSERT( formula != NULL );
+    //ASSERT( pszFormulaExpr != NULL );
+    //ASSERT( formula != NULL );
 
 	szExpr = pszFormulaExpr;
 	k = 0;

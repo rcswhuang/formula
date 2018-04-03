@@ -8,6 +8,7 @@ typedef unsigned int WPARAM;
 typedef long LPARAM;
 
 //定义相关类型 最好移到publicdata.h
+#define MAXATTRNAMELEN	32
 
 // for 公式数据
 #define MODULE_ID  0 //监控ID
