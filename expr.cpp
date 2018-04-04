@@ -137,7 +137,7 @@ bool CheckDay( ITEM* pItem )
 		pItem->ItemTime.flag = 0;
 	}
 
-	return TRUE;
+    return true;
 }
 
 bool CheckMon( ITEM* pItem )
