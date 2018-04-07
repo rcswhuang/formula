@@ -5,10 +5,11 @@
 
 //#include "publicdata.h"
 #include "hformulapi.h"
-//#include "formula.h"
+#include "hformulaex.h"
 #include "expr.h"
 
 
+int yylex( void );
 #define YYSTYPE ITEM
 #define BUFSIZE 50
 
@@ -19,10 +20,11 @@ char szErrText[128];
 const char* szExpr;
 int k;
 
-CPtrList* pItemList;
+QList<ITEMDATA*> *pItemList;
 ITEMDATA* pItemData;
 
 //POSITION pos;
+int pos = -1;
 bool bCheck;
 
 FORMULA* pFormula;
@@ -53,25 +55,25 @@ extern ATTRINFO PulAttrInfo[];
 YYSTYPE yylval, yyval;
 #define YYERRCODE 256
   /* start of programs */
-extern const char* GetDevName(WORD wStation,BYTE btEquType, WORD wEquNo, WORD wProtNo);
+extern const char* GetDevName(ushort wStation,uchar btEquType, ushort wEquNo, ushort wProtNo);
 
 void yyerror( char* szError )
 {
 	sprintf( szErrText,"%s near or at position %d", szError, k );
 }
 
-const char  GetErrText()
+char*  GetErrText()
 {
 	return szErrText; 
 }
 
-void GetErrPos( int& nLine, int& nPos )
+void getErrPos( int& nLine, int& nPos )
 {
 	nLine = 0;
 	nPos = k; 
 } 
 
-bool CheckMin( ITEM* pItem )
+bool checkMin( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
@@ -94,7 +96,7 @@ bool CheckMin( ITEM* pItem )
     return true;
 }
 
-bool CheckHour( ITEM* pItem )
+bool checkHour( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
@@ -117,7 +119,7 @@ bool CheckHour( ITEM* pItem )
     return true;
 }
 
-bool CheckDay( ITEM* pItem )
+bool checkDay( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
@@ -140,7 +142,7 @@ bool CheckDay( ITEM* pItem )
     return true;
 }
 
-bool CheckMon( ITEM* pItem )
+bool checkMon( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
@@ -163,7 +165,7 @@ bool CheckMon( ITEM* pItem )
     return true;
 }
 
-bool CheckYear( ITEM* pItem )
+bool checkYear( ITEM* pItem )
 {
 	float fValue = pItem->fValue;
 	if ( ITEM_TIME == pItem->btType )
@@ -186,18 +188,18 @@ bool CheckYear( ITEM* pItem )
     return true;
 }
 
-bool GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem )
+bool getFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem )
 {
 	STATION station;
 	if ( NULL == m_lpFormulaProc )
-		return FALSE;
+        return false;
 
 	FORMULAPARAMETER Param;
-	Param.wStation = (WORD)-1;
+    Param.wStation = (ushort)-1;
 	Param.btType = TYPE_NULL;
 	Param.pBuffer = &station;
 
-	for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ); Param.wPoint++ )
+    for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ,0); Param.wPoint++ )
 	{
 		if ( !strcmp( pStName, station.szStationName ) )
 		{
@@ -206,19 +208,19 @@ bool GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 
 			ANALOGUE analogue;
 			DIGITAL digital;
-			PULSE pulse;
+            //PULSE pulse;
 
 			Param.pBuffer = &analogue;
 			Param.btType = TYPE_ANALOGUE;
 
-			for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ); Param.wPoint++ )
+            for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ,0); Param.wPoint++ )
 			{
-				char szTemp[PTNAMELEN+EQUNAMELEN+1];
-				sprintf(szTemp,"%s",analogue.szName);
+                char szTemp[PTNAMELEN+EQUIPMENTLEN+1];
+                sprintf(szTemp,"%s",analogue.szAnalogueName);
 				if ( !strcmp( pPtName, szTemp ) )
 				{
 					pItem->btType = ITEM_ANALOGUE;
-					pItem->DbWord.wPoint = analogue.wNo;
+                    pItem->DbWord.wPoint = analogue.wAnalogueID;
 					pItem->DbWord.wAttrib = ATTR_ANA_VALUE;
 
 					if ( pAttrName != NULL && strlen( pAttrName ) > 0 )
@@ -226,21 +228,21 @@ bool GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 							if ( !strcmp( AnaAttrInfo[i].szAttrib, pAttrName ) )
 								pItem->DbWord.wAttrib = AnaAttrInfo[i].wAttrib;
 
-					return TRUE;
+                    return true;
 				}
 			}
 
 			Param.pBuffer = &digital;
 			Param.btType = TYPE_DIGITAL;
 
-			for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ); Param.wPoint++ )
+            for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ,0); Param.wPoint++ )
 			{
-				char szTemp[PTNAMELEN+EQUNAMELEN+1];
-				sprintf(szTemp,"%s",digital.szName);
+                char szTemp[PTNAMELEN+EQUIPMENTLEN+1];
+                sprintf(szTemp,"%s",digital.szDigitalName);
 				if ( !strcmp( pPtName, szTemp ) )
 				{
 					pItem->btType = ITEM_DIGITAL;
-					pItem->DbWord.wPoint = digital.wNo;
+                    pItem->DbWord.wPoint = digital.wDigitalID;
 					pItem->DbWord.wAttrib = ATTR_DGT_VALUE;
 
 					if ( pAttrName != NULL && strlen( pAttrName ) > 0 )
@@ -248,7 +250,7 @@ bool GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 							if ( !strcmp( DgtAttrInfo[i].szAttrib, pAttrName ) )
 								pItem->DbWord.wAttrib = DgtAttrInfo[i].wAttrib;
 
-					return TRUE;
+                    return true;
 				}
 			}
 /*
@@ -294,7 +296,7 @@ bool GetFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 }
 
 //从装置里面获取的 暂时不用
-bool GetFormulaItemForGIN( char* pStName/*厂站名*/, char* pPtName/*装置名*/, char* pAttrName/*测点名*/, ITEM* pItem )
+bool getFormulaItemForGIN( char* pStName/*厂站名*/, char* pPtName/*装置名*/, char* pAttrName/*测点名*/, ITEM* pItem )
 {
 /*	if ( NULL == m_lpFormulaProc )
         return false;
@@ -397,7 +399,7 @@ void SkipBlank()
 /*
  * 通过对szExpr分析获取站名，点名，属性名，从而获取ITEM信息
 */
-bool GetDbItem( ITEM* pItem )
+bool getDbItem( ITEM* pItem )
 {
 	SkipBlank();
 	if ( HEADER_SIGN != szExpr[ k ] )
@@ -408,8 +410,8 @@ bool GetDbItem( ITEM* pItem )
     char szStName[STATIONNAMELEN], szPtName[PTNAMELEN+EQUIPMENTLEN+1], szAttrName[MAXATTRNAMELEN] = "";
 
 	q = strchr( p + 1, '.' );
-	if ( NULL == q || q - p > STNAMELEN )
-		return FALSE;
+    if ( NULL == q || q - p > STATIONNAMELEN )
+        return false;
 
 	strncpy( szStName, p + 1, q - p - 1 );
 	szStName[ q - p - 1 ] = '\0';
@@ -422,13 +424,13 @@ bool GetDbItem( ITEM* pItem )
 	}
 
 	if ( NULL == r )
-		return FALSE;
+        return false;
 
-	char* pattr = strchr( q + 1, '.' );
+    const char* pattr = strchr( q + 1, '.' );
 	if ( pattr != NULL )
 	{
 		if ( pattr - q > PTNAMELEN || r - pattr > MAXATTRNAMELEN )
-			return FALSE;
+            return false;
 
 		strncpy( szPtName, q + 1, pattr - q - 1 );
 		szPtName[ pattr - q - 1 ] = '\0';
@@ -439,20 +441,20 @@ bool GetDbItem( ITEM* pItem )
 	else
 	{
 		if ( r - q > PTNAMELEN )
-			return FALSE;
+            return false;
 
 		strncpy( szPtName, q + 1, r - q - 1 );
 		szPtName[ r - q - 1 ] = '\0';
 	}
 	//{{Add for GIN
-	if(m_pFormulaModule == MODULE_DEVGIN)
+  /*  if(m_pFormulaModule == MODULE_GIN)
 	{
 		if ( !GetFormulaItemForGIN( szStName, szPtName, szAttrName, pItem ) )
             return false;
 	}
-	else
+    else*/
 	{
-		if ( !GetFormulaItem( szStName, szPtName, szAttrName, pItem ) )
+        if ( !getFormulaItem( szStName, szPtName, szAttrName, pItem ) )
             return false;
 	}
 
@@ -461,7 +463,7 @@ bool GetDbItem( ITEM* pItem )
 }
 
 //对数字量构建一个ITEM，注意数字都是FLOAT
-bool GetNumberItem( ITEM* pItem )
+bool getNumberItem( ITEM* pItem )
 {
 	SkipBlank();
 	if ( !isdigit( szExpr[ k ] ) && '.' != szExpr[ k ] )
@@ -480,7 +482,7 @@ bool GetNumberItem( ITEM* pItem )
 		if ( '.' == szExpr[ k ] )
 		{
 			if ( dot++ )
-				return FALSE;
+                return false;
 
 			continue;
 		}
@@ -503,11 +505,11 @@ bool GetNumberItem( ITEM* pItem )
     return true;
 }
 
-bool GetExtendNumberItem( ITEM* pItem )
+bool getExtendNumberItem( ITEM* pItem )
 {
 	SkipBlank();
 	if ( isdigit( szExpr[ k ] ) || '.' == szExpr[ k ] )
-		return GetNumberItem( pItem );
+        return getNumberItem( pItem );
 
 	if ( '$' == szExpr[ k++ ] )
 	{
@@ -518,8 +520,8 @@ bool GetExtendNumberItem( ITEM* pItem )
 		if ( '+' == ch || '-' == ch )
 		{
 			k = k + 1;
-			if ( !GetNumberItem( pItem ) )
-				return FALSE;
+            if ( !getNumberItem( pItem ) )
+                return false;
 		}
 
 		if ( '-' == ch )
@@ -534,20 +536,20 @@ bool GetExtendNumberItem( ITEM* pItem )
     return false;
 }
 
-bool GetTimeItem( ITEM* pItem )
+bool getTimeItem( ITEM* pItem )
 {
 	ITEM itemYear, itemMon, itemDay, itemHour, itemMin;
-	if ( '[' != szExpr[ k++ ] || !GetExtendNumberItem( &itemYear ) ||
-		 '/' != szExpr[ k++ ] || !GetExtendNumberItem( &itemMon )  ||
-		 '/' != szExpr[ k++ ] || !GetExtendNumberItem( &itemDay )  ||
-		 ',' != szExpr[ k++ ] || !GetExtendNumberItem( &itemHour ) ||
-		 ':' != szExpr[ k++ ] || !GetExtendNumberItem( &itemMin )  ||
+    if ( '[' != szExpr[ k++ ] || !getExtendNumberItem( &itemYear ) ||
+         '/' != szExpr[ k++ ] || !getExtendNumberItem( &itemMon )  ||
+         '/' != szExpr[ k++ ] || !getExtendNumberItem( &itemDay )  ||
+         ',' != szExpr[ k++ ] || !getExtendNumberItem( &itemHour ) ||
+         ':' != szExpr[ k++ ] || !getExtendNumberItem( &itemMin )  ||
 		 ']' != szExpr[ k++ ] )
-		 return FALSE;
+         return false;
 
-	if ( !CheckYear( &itemYear ) || !CheckMon( &itemMon ) || !CheckDay( &itemDay ) ||
-		 !CheckHour( &itemHour ) || !CheckMin( &itemMin ) )
-		 return FALSE;
+    if ( !checkYear( &itemYear ) || !checkMon( &itemMon ) || !checkDay( &itemDay ) ||
+         !checkHour( &itemHour ) || !checkMin( &itemMin ) )
+         return false;
 
 	pItem->btType = ITEM_TIME;
 	pItem->ItemTime.year = itemYear.ItemTime.year;
@@ -562,13 +564,14 @@ bool GetTimeItem( ITEM* pItem )
     return true;
 }
 
-yylex()    /* lexical analysis routine */
+int yylex()    /* lexical analysis routine */
 {
 	SkipBlank();
 	if ( pItemData != NULL && k == pItemData->nStartPos )
 	{
 		k = pItemData->nEndPos + 1;
-		pItemData = ( NULL == pos ) ? NULL : (ITEMDATA*)pItemList->GetNext( pos );
+        pItemData = ( -1 == pos ) ? NULL : (ITEMDATA*)pItemList->at( pos );
+        pos++;
 
 		yylval = pItemData->item;
 		switch ( pItemData->item.btType )
@@ -580,7 +583,7 @@ yylex()    /* lexical analysis routine */
 			case ITEM_PULSE:
 				return PUL;
 			default:
-				ASSERT( FALSE );
+                //ASSERT( false );
 				return ERR;
 		}
 	}
@@ -588,10 +591,10 @@ yylex()    /* lexical analysis routine */
 	if ( HEADER_SIGN == szExpr[ k ] )
 	{
 		ITEM item;
-		if ( GetDbItem( &item ) )
+        if ( getDbItem( &item ) )
 		{
 			yylval = item;
-			yylval.btReserve = (BYTE)-1;
+            yylval.btReserver = (uchar)-1;
 
 			switch ( item.btType )
 			{
@@ -608,7 +611,8 @@ yylex()    /* lexical analysis routine */
 					return PUL;
 
 				default:
-					ASSERT( FALSE );
+                    //ASSERT( FALSE );
+                break;
 			}
 
 			return ERR;
@@ -633,9 +637,9 @@ yylex()    /* lexical analysis routine */
 				strcpy( szFace, HstTypeInfo[i].szFace );
 				szFace[nLen] = 0;
 
-				if ( !_strnicmp( szFace, szExpr + k + 1, nLen ) )
+                if ( !qstrnicmp( szFace, szExpr + k + 1, nLen ) )
 				{
-					yylval.btReserve = HstTypeInfo[i].btHst;
+                    yylval.btReserver = HstTypeInfo[i].btHst;
 					k += nLen + 2;
 					return STEP;
 				}
@@ -643,7 +647,7 @@ yylex()    /* lexical analysis routine */
 		}
 
 		ITEM item;
-		if ( GetTimeItem( &item ) )
+        if ( getTimeItem( &item ) )
 		{
 			yylval = item;
 			return TIME;
@@ -652,61 +656,61 @@ yylex()    /* lexical analysis routine */
 		return ERR;
 	}
 
-	if ( !_strnicmp( szExpr + k, "MAXT", 4 ) )
+    if ( !qstrnicmp( szExpr + k, "MAXT", 4 ) )
 	{
 		k += 4;
 		return MAXT;
 	}
 
-	if ( !_strnicmp( szExpr + k, "MINT", 4 ) )
+    if ( !qstrnicmp( szExpr + k, "MINT", 4 ) )
 	{
 		k += 4;
 		return MINT;
 	}
 
-	if ( !_strnicmp( szExpr + k, "MAX", 3 ) )
+    if ( !qstrnicmp( szExpr + k, "MAX", 3 ) )
 	{
 		k += 3;
 		return MAX;
 	}
 
-	if ( !_strnicmp( szExpr + k, "MIN", 3 ) )
+    if ( !qstrnicmp( szExpr + k, "MIN", 3 ) )
 	{
 		k += 3;
 		return MIN;
 	}
 
-	if ( !_strnicmp( szExpr + k, "AVE", 3 ) )
+    if ( !qstrnicmp( szExpr + k, "AVE", 3 ) )
 	{
 		k += 3;
 		return AVE;
 	}
 
-	if ( !_strnicmp( szExpr + k, "SUM", 3 ) )
+    if ( !qstrnicmp( szExpr + k, "SUM", 3 ) )
 	{
 		k += 3;
 		return SUM;
 	}
 
-	if ( !_strnicmp( szExpr + k, ">=", 2 ) )
+    if ( !qstrnicmp( szExpr + k, ">=", 2 ) )
 	{
 		k += 2;
 		return GEQUAL;
 	}
 
-	if ( !_strnicmp( szExpr + k, "<=", 2 ) )
+    if ( !qstrnicmp( szExpr + k, "<=", 2 ) )
 	{
 		k += 2;
 		return LEQUAL;
 	}
 
-	if ( !_strnicmp( szExpr + k, "!=", 2 ) )
+    if ( !qstrnicmp( szExpr + k, "!=", 2 ) )
 	{
 		k += 2;
 		return NEQUAL;
 	}
 
-	if ( !_strnicmp( szExpr + k, "XOR", 3 ) )
+    if ( !qstrnicmp( szExpr + k, "XOR", 3 ) )
 	{
 		k += 3;
 		return XOR;
@@ -714,7 +718,7 @@ yylex()    /* lexical analysis routine */
 
 	if ( isdigit( szExpr[ k ] ) || '.' == szExpr[ k ] )
 	{
-		if ( !GetNumberItem( &yylval ) )
+        if ( !getNumberItem( &yylval ) )
 			return ERR;
 
 		return NUMBER;
@@ -749,7 +753,7 @@ int Action2( ITEM& item )
 
 	if ( !bCheck )
 	{
-		ITEM* pItem = AddItem( &item );
+        ITEM* pItem = addItem( &item );
 		if ( NULL == pItem )
 		{
 			yyerror( "Failed to add item" );
@@ -764,7 +768,7 @@ int Action2( ITEM& item )
 	return 0;
 }
 
-bool _compile_formula( const char* pszFormulaExpr, FORMULA* formula, CPtrList* pList, BOOL check )
+bool _compile_formula( const char* pszFormulaExpr, FORMULA* formula, QList<ITEMDATA*>* pList, bool check )
 {
     //ASSERT( pszFormulaExpr != NULL );
     //ASSERT( formula != NULL );
@@ -775,21 +779,30 @@ bool _compile_formula( const char* pszFormulaExpr, FORMULA* formula, CPtrList* p
 	pItemList = pList;
 	pItemData = NULL;
 
-	if ( pItemList != NULL )
+    /*
+    if ( pItemList != NULL)
+    {
+        pos = pItemList->GetHeadPosition();
+        if ( pos != NULL )
+            pItemData = (ITEMDATA*)pItemList->GetNext( pos );
+    }
+    */
+
+    if ( pItemList != NULL && !pItemList->isEmpty())
 	{
-		pos = pItemList->GetHeadPosition();
-		if ( pos != NULL )
-			pItemData = (ITEMDATA*)pItemList->GetNext( pos );
+        pos = 0;
+        pItemData = (ITEMDATA*)pItemList->at(pos);
+        pos++;
 	}
 
 	pFormula = formula; len = 0;
-	memset( pFormula->wFormula, 0, FORMULALEN * sizeof(WORD) );
+    memset( pFormula->wFormula, 0, FORMULALEN * sizeof(ushort) );
 
 	bCheck = check;
 	if ( yyparse() )
-		return FALSE;
+        return false;
 
-	return TRUE;
+    return true;
 }
 FILE *yytfilep;
 char *yytfilen;
@@ -970,10 +983,6 @@ int pcyyerrfl = 0;           /* error flag */
 int redseq[YYREDMAX];
 int redcnt = 0;
 int pcyytoken = -1;          /* input token */
-
-
-int yylex( void );
-
 
 int yyparse( void )
 {
@@ -1376,28 +1385,28 @@ int yyparse( void )
       case 55:{
       			/* timedb : ANA itemTime itemTime */
       			yypvt[-2].btType = ITEM_ANATIME;
-      			yypvt[-2].btReserve = (BYTE)-1;
+                yypvt[-2].btReserver = (uchar)-1;
       			if ( Action2( yypvt[-2] ) )
       				return 1;
       		} break;
       case 56:{
       			/* timedb : ANA itemTime itemTime itemStep */
       			yypvt[-3].btType = ITEM_ANATIME;
-      			yypvt[-3].btReserve = yypvt[-0].btReserve;
+                yypvt[-3].btReserver = yypvt[-0].btReserver;
       			if ( Action2( yypvt[-3] ) )
       				return 1;
       		} break;
       case 57:{
       			/* timedb : PUL itemTime itemTime */
       			yypvt[-2].btType = ITEM_PULTIME;
-      			yypvt[-2].btReserve = (BYTE)-1;
+                yypvt[-2].btReserver = (uchar)-1;
       			if ( Action2( yypvt[-2] ) )
       				return 1;
       		} break;
       case 58:{
       			/* timedb : PUL itemTime itemTime itemStep */
       			yypvt[-3].btType = ITEM_PULTIME;
-      			yypvt[-3].btReserve = yypvt[-0].btReserve;
+                yypvt[-3].btReserver = yypvt[-0].btReserver;
       			if ( Action2( yypvt[-3] ) )
       				return 1;
       		} break;

@@ -3,6 +3,14 @@ LANGUAGE = c++
 CONFIG += qt warn_off thread exceptions
 TARGET = formula
 
+win32{
+    DESTDIR = ../lib
+}
+
+unix{
+DESTDIR = ../lib
+}
+
 DEFINES += FORMULA_DLL
 INCLUDEPATH += \
     ../include \

@@ -21,6 +21,19 @@ typedef long LPARAM;
 #define POINTBTYPE_CONST    0 //遥信比较的常量/遥测比较的常量
 #define POINTBTYPE_ANALOGUE 1 //遥测量
 
+#define HSTTYPEFIRST     0x00
+#define HSTTYPE_1MINUTE  0x00//,  "1min",        2},
+#define HSTTYPE_5MINUTE  0x01//,  "5min",        2},
+#define HSTTYPE_15MINUTE 0x02//, "15min",       3},
+#define HSTTYPE_HOUR     0x03//,     "1hour",       2},
+#define HSTTYPE_DAY      0x04//,      "1day",        2},
+#define HSTTYPE_MONTH    0x05
+#define HSTTYPE_YEAR     0x06
+#define HSTTYPELAST      0x06
+
+#define HEADER_SIGN '['
+#define TAILER_SIGN ']'
+
 //公式具体内容
 typedef struct _tagFORMULA
 {
@@ -158,6 +171,13 @@ typedef struct _tagFORMULAITEMLIST
     QList<ITEM*> *pItemList;
 }FORMULAITEMLIST;
 
+typedef struct _tagITEMDATA
+{
+    int nStartPos;
+    int nEndPos;
+
+    ITEM item;
+}ITEMDATA;
 
 #define INVALID_FLOAT 3.4e+38F  //超大值
 #define INVALID_TIME 0

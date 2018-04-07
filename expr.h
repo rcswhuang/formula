@@ -1,8 +1,8 @@
 // expr.h : header file
 //
-
-const char  GetErrText();
+#include "hformulapi.h"
+char*  GetErrText();
 void GetErrPos( int& nLine, int& nPos );
 
 int yyparse( void );
-BOOL _compile_formula( const char* pszFormulaExpr, FORMULA* formula, CPtrList* pList, BOOL check );
+bool _compile_formula( const char* pszFormulaExpr, FORMULA* formula, QList<ITEMDATA*>* pList, bool check );

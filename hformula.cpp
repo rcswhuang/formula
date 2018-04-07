@@ -125,7 +125,7 @@ FORMULA* FORMULA_EXPORT getFormula(ushort wNo)
 
 bool FORMULA_EXPORT loadFormulaData(QList<FORMULA*> pFormulaList,QList<ITEM*> pItemList)
 {
-    if(!loadFormulaData(pFormulaList,pItemList)) return false;
+    if(!loadFormulaData(&pFormulaList,&pItemList)) return false;
     m_bFormula = true;
     return true;
 }

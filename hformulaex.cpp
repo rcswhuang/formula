@@ -271,7 +271,7 @@ bool loadRunFormulaList()
             }
         }
     }
-    return false;
+    return true;
 }
 
 //从文件中读取的规则表和规则项表

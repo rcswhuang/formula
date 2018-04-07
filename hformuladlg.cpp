@@ -1,6 +1,6 @@
 #include "hformuladlg.h"
 #include "ui_formula.h"
-//#include "hformulapi.h"
+#include "hformulapi.h"
 
 extern LPFORMULAPROC m_lpFormulaProc;
 extern ATTRINFO AnaAttrInfo[];
@@ -64,6 +64,8 @@ HFormulaDlg::HFormulaDlg(FORMULA* pFormula,QWidget *parent):
     wProtect = (ushort)-1;
     btType = TYPE_NULL;
     m_pFormula = pFormula;
+    initConnect();
+    init();
 }
 
 HFormulaDlg::~HFormulaDlg()
