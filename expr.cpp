@@ -3,8 +3,6 @@
 #include <ctype.h>
 #include <string.h>
 
-//#include "publicdata.h"
-#include "hformulapi.h"
 #include "hformulaex.h"
 #include "expr.h"
 

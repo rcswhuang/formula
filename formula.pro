@@ -12,13 +12,12 @@ DESTDIR = ../lib
 }
 
 DEFINES += FORMULA_DLL
+
 INCLUDEPATH += \
     ../include \
 
 HEADERS       = \
-    hformulaexport.h \
     hformuladlg.h \
-    hformulapi.h \
     hformulaex.h \
     expr.h
 

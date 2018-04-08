@@ -1,7 +1,9 @@
-#include "hformuladlg.h"
+﻿#include "hformuladlg.h"
 #include "ui_formula.h"
-#include "hformulapi.h"
-
+#include "expr.h"
+#if defined (_MSC_VER) && (_MSC_VER >=1600)
+#pragma execution_character_set("utf-8")
+#endif
 extern LPFORMULAPROC m_lpFormulaProc;
 extern ATTRINFO AnaAttrInfo[];
 extern ATTRINFO DgtAttrInfo[];
@@ -66,6 +68,8 @@ HFormulaDlg::HFormulaDlg(FORMULA* pFormula,QWidget *parent):
     m_pFormula = pFormula;
     initConnect();
     init();
+    connect(ui->okBtn,SIGNAL(clicked(bool)),this,SLOT(onOk()));
+    connect(ui->cancleBtn,SIGNAL(clicked(bool)),this,SLOT(onCancle()));
 }
 
 HFormulaDlg::~HFormulaDlg()
@@ -105,8 +109,8 @@ void HFormulaDlg::init()
             for(Param1.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param1,0);Param1.wPoint++)
             {
                 ui->IDC_COMBOMODE->addItem(equipGroup.szGroupName,equipGroup.wGroupID);
-                ui->IDC_COMBOMODE->setCurrentIndex(0);
             }
+            ui->IDC_COMBOMODE->setCurrentIndex(0);
 
             setPointList(wStation,btType);
         }
@@ -852,6 +856,34 @@ void HFormulaDlg::updateAttrib()
             }
         }
     }
-    if(ui->IDC_TYPE->count()>0)
-        ui->IDC_TYPE->setCurrentIndex(0);
+    //if(ui->IDC_TYPE->count()>0)
+    //    ui->IDC_TYPE->setCurrentIndex(0);
+}
+
+void HFormulaDlg::onOk()
+{
+    QString strFormulaText = ui->IDC_EDIT->toPlainText();
+    if(!_compile_formula(strFormulaText.toLocal8Bit().data(),m_pFormula,NULL,false))
+    {
+        const char* pszFormula = strFormulaText.toLocal8Bit().data();
+        while(' ' == *pszFormula || '\t' == *pszFormula)
+            pszFormula++;
+        if(0 != pszFormula)
+        {
+            int nline,npos;
+            getErrPos(nline,npos);
+            ui->IDC_EDIT->setFocus();
+            QTextCursor cursor = ui->IDC_EDIT->textCursor();
+            cursor.setPosition(npos);
+            ui->IDC_EDIT->setTextCursor(cursor);
+            m_pFormula->wFormula[0] = 0;
+            return;
+        }
+    }
+    QDialog::accept();
+}
+
+void HFormulaDlg::onCancle()
+{
+    QDialog::reject();
 }

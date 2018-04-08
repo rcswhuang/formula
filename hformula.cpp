@@ -1,10 +1,13 @@
-#include "hformulapi.h"
+﻿#include "hformulapi.h"
 #include "hformuladlg.h"
 #include "hformulaex.h"
-#include "hformuladlg.h"
+#include "expr.h"
 #include <QList>
 #include <QVector>
 #include <math.h>
+#if defined (_MSC_VER) && (_MSC_VER >=1600)
+#pragma execution_character_set("utf-8")
+#endif
 QList<FORMULA*> m_FormulaList;
 QList<ITEM*> m_ItemList;
 QVector<FORMULARUN*> m_FormulaRunList;
@@ -87,7 +90,7 @@ ATTRINFO PulAttrInfo[]=
 };
 
 //初始化Formula
-bool FORMULA_EXPORT initFormula(LPFORMULAPROC lpFormulaProc,uchar btModuleType /*= MODULE_ID*/)
+FORMULA_EXPORT bool  initFormula(LPFORMULAPROC lpFormulaProc,uchar btModuleType /*= MODULE_ID*/)
 {
     if(m_bFormula)
         return true;
@@ -109,7 +112,7 @@ void FORMULA_EXPORT exitFormula()
 
 }
 
-FORMULA* FORMULA_EXPORT getFormula(ushort wNo)
+FORMULA_EXPORT FORMULA*  getFormula(ushort wNo)
 {
     if(!m_bFormula)
         return NULL;
@@ -231,10 +234,10 @@ bool FORMULA_EXPORT createFormula(FORMULA* pFormula,ushort wNo)//创建某个测
 
 bool FORMULA_EXPORT compileFormula(const char* szFormula,FORMULA* pFormula)//编译公式
 {
-
+    return _compile_formula(szFormula,pFormula,NULL,false);
 }
 
-QString FORMULA_EXPORT getFormulaText(FORMULA* pFormula,bool bValue)
+FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
 {
     if(!m_bFormula || NULL == pFormula)
         return NULL;
@@ -253,7 +256,7 @@ QString FORMULA_EXPORT getFormulaText(FORMULA* pFormula,bool bValue)
 
     m_strFormulaText.clear();
     if(0 == pFormula->wFormula[0])
-        return m_strFormulaText;
+        return m_strFormulaText.toLocal8Bit().data();
 
     uchar btHstType = (uchar)-1;
     int top = 0,k = 0;
@@ -456,7 +459,7 @@ QString FORMULA_EXPORT getFormulaText(FORMULA* pFormula,bool bValue)
             continue;
         }
     }
-    return m_strFormulaText;
+    return m_strFormulaText.toLocal8Bit().data();
 }
 
 //在pFormula的里面寻找item,如果找到pOld,就用pNew替换,ITEM必须是数字 字符等

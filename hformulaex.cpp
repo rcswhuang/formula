@@ -1,5 +1,9 @@
-#include "hformulaex.h"
+﻿#include "hformulaex.h"
 #include <QList>
+#include <QVector>
+#if defined (_MSC_VER) && (_MSC_VER >=1600)
+#pragma execution_character_set("utf-8")
+#endif
 using namespace std;
 extern QList<FORMULA*> m_FormulaList;
 extern QList<ITEM*> m_ItemList;
@@ -472,7 +476,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
 
 bool getWordStringForGIN(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QString& string)
 {
-
+    return false;
 }
 
 bool getItemString(ushort wNo,QString& string,bool bValue)
@@ -561,12 +565,12 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
 
 bool getItemStringForGIN(ushort wNo,QString& string,bool bValue)
 {
-
+    return false;
 }
 
 bool getPointNameForGIN(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QString& string)//wPoint 是GIN号
 {
-
+    return false;
 }
 
 bool getPointName(ushort wStation,uchar btType,ushort wPoint,QString& string)//wPoint 是点号
@@ -730,7 +734,7 @@ void TimeToItemTime(struct tm* ptm,ITEM* pItem)
 
 bool matchPulAttrib(ITEM* pItem,ushort& wAttrib)
 {
-
+    return false;
 }
 
 FORMULARUN *getFormulaRun(ushort wNo)
@@ -1021,7 +1025,7 @@ void getRuleFailList(QList<FORMULACONDITION*> *pCondList,QStringList* pStrErrorL
                 if(bGrade && bFirstItem)
                 {
                     QString strError;
-                    strError = QString(QStringLiteral("第%1组条件")).arg(nIndex++);
+                    strError = QString("第%1组条件").arg(nIndex++);
                     pStrErrorList->append(strError);
                     bFirstItem = false;
                 }

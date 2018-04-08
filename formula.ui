@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>654</width>
+    <width>677</width>
     <height>450</height>
    </rect>
   </property>
@@ -55,6 +55,7 @@
         <widget class="QPushButton" name="okBtn">
          <property name="font">
           <font>
+           <family>宋体</family>
            <pointsize>13</pointsize>
           </font>
          </property>
@@ -64,7 +65,13 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="cancelBtn">
+        <widget class="QPushButton" name="cancleBtn">
+         <property name="font">
+          <font>
+           <family>宋体</family>
+           <pointsize>13</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>取消</string>
          </property>

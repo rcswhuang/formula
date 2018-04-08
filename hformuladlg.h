@@ -1,5 +1,5 @@
-#ifndef HFORMULA_H
-#define HFORMULA_H
+#ifndef HFORMULADLG_H
+#define HFORMULADLG_H
 
 #include <QDialog>
 #include "hformulapi.h"
@@ -85,6 +85,9 @@ public slots:
     void onAttribChanged_clicked();
 
     void onListWidget_doubleClicked();
+
+    void onOk();
+    void onCancle();
 
 protected:
     ushort wStation;
