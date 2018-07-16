@@ -1,4 +1,4 @@
-#ifndef HFORMULAEX_H
+﻿#ifndef HFORMULAEX_H
 #define HFORMULAEX_H
 #include "hformulapi.h"
 

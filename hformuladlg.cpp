@@ -1,9 +1,12 @@
-﻿#include "hformuladlg.h"
-#include "ui_formula.h"
-#include "expr.h"
-#if defined (_MSC_VER) && (_MSC_VER >=1600)
+﻿#if defined (_MSC_VER) && (_MSC_VER >=1600)
 #pragma execution_character_set("utf-8")
 #endif
+#include "hformuladlg.h"
+#include "ui_formula.h"
+#include "expr.h"
+#include <QTextCodec>
+
+
 extern LPFORMULAPROC m_lpFormulaProc;
 extern ATTRINFO AnaAttrInfo[];
 extern ATTRINFO DgtAttrInfo[];
@@ -66,8 +69,8 @@ HFormulaDlg::HFormulaDlg(FORMULA* pFormula,QWidget *parent):
     wProtect = (ushort)-1;
     btType = TYPE_NULL;
     m_pFormula = pFormula;
-    initConnect();
-    init();
+    //initConnect();
+    //init();
     connect(ui->okBtn,SIGNAL(clicked(bool)),this,SLOT(onOk()));
     connect(ui->cancleBtn,SIGNAL(clicked(bool)),this,SLOT(onCancle()));
 }
@@ -79,6 +82,7 @@ HFormulaDlg::~HFormulaDlg()
 
 void HFormulaDlg::init()
 {
+    initConnect();
     connect(ui->IDC_STATION,SIGNAL(currentIndexChanged(int)),this,SLOT(onStationChanged_clicked()));
     connect(ui->IDC_COMBOMODE,SIGNAL(currentIndexChanged(int)),this,SLOT(onIntervalChanged_clicked()));
     connect(ui->IDC_TYPE,SIGNAL(currentIndexChanged(int)),this,SLOT(onTypeChanged_clicked()));
@@ -90,13 +94,20 @@ void HFormulaDlg::init()
     ui->IDC_STATION->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     ui->IDC_COMBOMODE->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
+    //先设置类型
+    for(int i = 0; AttrInfos[i].btType != 0;i++)
+    {
+        ui->IDC_TYPE->addItem(AttrInfos[i].szType,AttrInfos[i].btType);
+
+    }
+
     STATION station;
     FORMULAPARAMETER Param;
     Param.wStation = (ushort)-1;
     Param.btType = TYPE_NULL;
     Param.pBuffer = &station;
 
-    for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)
+    for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)//读取厂站的信息，从0开始，注意wPoint此时是厂站的ID
     {
         ui->IDC_STATION->addItem(station.szStationName,station.wStationID);
         if(station.wStationID == wStation)
@@ -116,12 +127,7 @@ void HFormulaDlg::init()
         }
     }
 
-    //设置属性
-    for(int i = 0; AttrInfos[i].btType != 0;i++)
-    {
-        ui->IDC_TYPE->addItem(AttrInfos[i].szType,AttrInfos[i].btType);
 
-    }
     int index = ui->IDC_TYPE->findData(btType);
     if(index != -1)
     {
@@ -131,6 +137,20 @@ void HFormulaDlg::init()
 
     //ui->IDC_FORMULA->setChecked(Qt::Checked);
     //ui->IDC_INFO->setEnabled(false);
+    if(m_pFormula->wFormula[0]!=0)
+    {
+        ui->IDC_EDIT->clear();
+        QString text = getFormulaText(m_pFormula,false);
+        if(!text.isEmpty())
+        {
+            ui->IDC_EDIT->setFocus();
+            QTextCursor cursor = ui->IDC_EDIT->textCursor();
+            cursor.clearSelection();
+            cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
+            cursor.insertText(text);
+            ui->IDC_EDIT->setTextCursor(cursor);
+        }
+    }
 
 }
 
@@ -242,7 +262,7 @@ void HFormulaDlg::idc0_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("0"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -254,7 +274,7 @@ void HFormulaDlg::idc1_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("1"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -266,7 +286,7 @@ void HFormulaDlg::idc2_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("2"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -278,7 +298,7 @@ void HFormulaDlg::idc3_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("3"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -290,7 +310,7 @@ void HFormulaDlg::idc4_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("4"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -302,7 +322,7 @@ void HFormulaDlg::idc5_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("5"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -314,7 +334,7 @@ void HFormulaDlg::idc6_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("6"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -326,7 +346,7 @@ void HFormulaDlg::idc7_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("7"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -338,7 +358,7 @@ void HFormulaDlg::idc8_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("8"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -350,7 +370,7 @@ void HFormulaDlg::idc9_clicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("9"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -362,7 +382,7 @@ void HFormulaDlg::idc10_clicked()//$
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("$"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -374,7 +394,7 @@ void HFormulaDlg::idcDot_clicked()//.
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("."));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -386,7 +406,7 @@ void HFormulaDlg::idcPlus_clicked() //+
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" + "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -398,7 +418,7 @@ void HFormulaDlg::idcMinus_clicked() //-
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" - "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -410,7 +430,7 @@ void HFormulaDlg::idcMutiply_clicked() //*
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" * "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -422,7 +442,7 @@ void HFormulaDlg::idcDidvde_clicked() // /
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" / "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -434,7 +454,7 @@ void HFormulaDlg::idcGreate_clicked() // >
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" > "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -446,7 +466,7 @@ void HFormulaDlg::idcLower_clicked() // <
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" < "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -458,7 +478,7 @@ void HFormulaDlg::idcEqual_clicked() // =
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" = "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -470,7 +490,7 @@ void HFormulaDlg::idcGequal_clicked() // >=
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" >= "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -482,7 +502,7 @@ void HFormulaDlg::idcLequal_clicked() // <=
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" <= "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -494,7 +514,7 @@ void HFormulaDlg::idcNequal_clicked() // !=
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" != "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -506,7 +526,7 @@ void HFormulaDlg::idcLparenthesis_clicked() //（
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" ( "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -518,7 +538,7 @@ void HFormulaDlg::idcRparenthesis_clicked() // ）
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" ) "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -530,7 +550,7 @@ void HFormulaDlg::idcDat_clicked()//Dat
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr("0"));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -542,7 +562,7 @@ void HFormulaDlg::idcPower_clicked()//Power
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" ^ "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -554,7 +574,7 @@ void HFormulaDlg::idcAnd_clicked()//And
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" & "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -566,7 +586,7 @@ void HFormulaDlg::idcOr_clicked()//Or
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" | "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -578,7 +598,7 @@ void HFormulaDlg::idcXor_clicked()//Xor
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" XOR "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -590,7 +610,7 @@ void HFormulaDlg::idcNot_clicked()//Not
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(tr(" ~ "));
     ui->IDC_EDIT->setTextCursor(cursor);
     QTextDocument* doc = ui->IDC_EDIT->document();
@@ -707,8 +727,8 @@ void HFormulaDlg::onStationChanged_clicked()
     for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)
     {
         ui->IDC_COMBOMODE->addItem(equipGroup.szGroupName,equipGroup.wGroupID);
-        ui->IDC_COMBOMODE->setCurrentIndex(0);
     }
+    ui->IDC_COMBOMODE->setCurrentIndex(0);
 
     btType = ui->IDC_TYPE->currentData().toUInt();
     if(-1 != btType)
@@ -795,7 +815,7 @@ void HFormulaDlg::onListWidget_doubleClicked()
     ui->IDC_EDIT->setFocus();
     QTextCursor cursor = ui->IDC_EDIT->textCursor();
     cursor.clearSelection();
-    cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::NoMove, QTextCursor::KeepAnchor);
     cursor.insertText(strText);
     ui->IDC_EDIT->setTextCursor(cursor);
 
@@ -863,6 +883,8 @@ void HFormulaDlg::updateAttrib()
 void HFormulaDlg::onOk()
 {
     QString strFormulaText = ui->IDC_EDIT->toPlainText();
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
+    //strFormulaText.remove(QRegExp("\\s")); //不能预先去掉所有空格，遥测遥测名都是加空格的组合名，除非比较时，都去掉空格
     if(!_compile_formula(strFormulaText.toLocal8Bit().data(),m_pFormula,NULL,false))
     {
         const char* pszFormula = strFormulaText.toLocal8Bit().data();

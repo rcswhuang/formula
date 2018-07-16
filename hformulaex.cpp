@@ -1,9 +1,10 @@
-﻿#include "hformulaex.h"
-#include <QList>
-#include <QVector>
-#if defined (_MSC_VER) && (_MSC_VER >=1600)
+﻿#if defined (_MSC_VER) && (_MSC_VER >=1600)
 #pragma execution_character_set("utf-8")
 #endif
+
+#include "hformulaex.h"
+#include <QList>
+#include <QVector>
 using namespace std;
 extern QList<FORMULA*> m_FormulaList;
 extern QList<ITEM*> m_ItemList;
@@ -61,7 +62,7 @@ bool insertItem(ITEM* pItem,QList<ITEM*>* pItemList)
         }
     }
     pItemList->append(pItem);
-    return false;
+    return true;
 }
 
 ushort getNextFormulaNo()
@@ -82,7 +83,7 @@ ushort getNextFormulaNo()
 
 ushort getNextItemNo()
 {
-    ushort wNo = 0;
+    ushort wNo = 1;
     for(int i = 0; i < m_ItemList.count(); i++)
     {
         ITEM* item = (ITEM*)m_ItemList[i];
@@ -133,9 +134,11 @@ bool isItemEqual(ITEM* pItem1,ITEM* pItem2)
     case ITEM_FLOAT:
         if(pItem1->fValue == pItem2->fValue)
             return true;
+        break;
     case ITEM_BOOLEAN:
         if(pItem1->bValue == pItem2->bValue)
             return true;
+        break;
     case ITEM_TIME:
         if(pItem1->ItemTime.year == pItem2->ItemTime.year &&
            pItem1->ItemTime.mon == pItem2->ItemTime.mon &&
@@ -144,6 +147,7 @@ bool isItemEqual(ITEM* pItem1,ITEM* pItem2)
            pItem1->ItemTime.min == pItem2->ItemTime.min &&
            pItem1->ItemTime.flag == pItem2->ItemTime.flag)
             return true;
+        break;
     default:
         break;
     }
@@ -416,7 +420,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
 
     STATION station;
     parameter.pBuffer = &station;
-    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
+    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID))
         return false;
     parameter.btType = btType;
     char szText[128] = "";
@@ -425,7 +429,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
     {
         ANALOGUE analogue;
         parameter.pBuffer = &analogue;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID))
             return false;
         int i = 0;
         for(; AnaAttrInfo[i].szAttrib != NULL;i++)
@@ -441,7 +445,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
     {
         DIGITAL digital;
         parameter.pBuffer = &digital;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID))
             return false;
         int i = 0;
         for(; DgtAttrInfo[i].szAttrib != NULL;i++)
@@ -550,6 +554,7 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
         try
         {
             sprintf(szText,"%f",pItem->fValue);
+            formatFloatString(szText);
         }catch(std::exception &e)
         {
             szText[0] = 0;
@@ -808,14 +813,14 @@ void getInputList(FORMULARUN* pFormulaRun,QList<FORMULACONDITION*>* pList,int nD
             btUnitCount++;
             ItemInput[top].nGroup = nGroupNo;
             ItemInput[top].bAlone = true;
-            ItemGroup[nGroupIndex].append(&ItemInput[0]);
+            ItemGroup[nGroupIndex].append(&ItemInput[top]);
             ItemBeforeOR.append(&ItemInput[0]);
             top++;
             ItemCount++;
             continue;
         }
 
-        if(wNo == OP_AND)
+        if(wNo == OP_AND)  //过个and
         {
             if(btUnitCount == 2 || 3 == btUnitCount)
             {

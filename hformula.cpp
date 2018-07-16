@@ -1,13 +1,15 @@
-﻿#include "hformulapi.h"
+﻿#if defined (_MSC_VER) && (_MSC_VER >=1600)
+#pragma execution_character_set("utf-8")
+#endif
+#include "hformulapi.h"
 #include "hformuladlg.h"
 #include "hformulaex.h"
 #include "expr.h"
 #include <QList>
 #include <QVector>
+#include <QTextCodec>
 #include <math.h>
-#if defined (_MSC_VER) && (_MSC_VER >=1600)
-#pragma execution_character_set("utf-8")
-#endif
+
 QList<FORMULA*> m_FormulaList;
 QList<ITEM*> m_ItemList;
 QVector<FORMULARUN*> m_FormulaRunList;
@@ -222,6 +224,7 @@ bool FORMULA_EXPORT createFormula(FORMULA* pFormula,ushort wNo)//创建某个测
     HFormulaDlg dlg(pFormula);
     dlg.setStation(m_wStation);
     dlg.setType(m_btType);
+    dlg.init();
     if(QDialog::Accepted == dlg.exec())
     {
         m_wStation = dlg.getStation();
@@ -237,10 +240,11 @@ bool FORMULA_EXPORT compileFormula(const char* szFormula,FORMULA* pFormula)//编
     return _compile_formula(szFormula,pFormula,NULL,false);
 }
 
-FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
+FORMULA_EXPORT QString  getFormulaText(FORMULA* pFormula,bool bValue)
 {
     if(!m_bFormula || NULL == pFormula)
         return NULL;
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
     QString string1,string2;
     //ops结构存放的是解析后的表达式最后变成1个完成的长度，操作符也是最后一个终极操作符
     /*  规则应该是一个中序排序存放在pFormlua里面的wFormula数组内
@@ -249,14 +253,16 @@ FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
      *     1   2   3   4
      * 适合二元运算符
      */
+    //
     struct {
         int nCount;
         ushort wOperator;
     }ops[FORMULALEN];
 
+
     m_strFormulaText.clear();
     if(0 == pFormula->wFormula[0])
-        return m_strFormulaText.toLocal8Bit().data();
+        return m_strFormulaText;
 
     uchar btHstType = (uchar)-1;
     int top = 0,k = 0;
@@ -277,6 +283,7 @@ FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
                     string2.clear();
             }
 
+
             ITEM* pItem = getItem(wNo,&m_ItemList);
             //好像读取遥测和遥脉的历史值字符串  ？？？？？---huangw
             if(NULL != pItem && (ITEM_ANAHST == pItem->btType || ITEM_PULHST == pItem->btType))
@@ -290,7 +297,7 @@ FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
                 m_strFormulaText = m_strFormulaText + string1;
                 if(NULL != pItem && (ITEM_ANATIME == pItem->btType || ITEM_PULTIME == pItem->btType))
                     btHstType = pItem->btReserver;
-                ops[top].nCount = string1.length();
+                ops[top].nCount = string1.toLocal8Bit().length();
                 ops[top++].wOperator = wNo;
             }
             continue;
@@ -301,8 +308,8 @@ FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
             if(0 == top || OP_UPLUS == wNo)
                 continue;
 
-            string1 = m_strFormulaText.right(ops[top-1].nCount);
-            m_strFormulaText = m_strFormulaText.left(m_strFormulaText.length() - ops[top-1].nCount);
+            string1 = m_strFormulaText.toLocal8Bit().right(ops[top-1].nCount);
+            m_strFormulaText = m_strFormulaText.toLocal8Bit().left(m_strFormulaText.toLocal8Bit().length() - ops[top-1].nCount);
 
             //如果top-1也是操作符，就要判断操作符优先级
             //如果top-1的操作符的优先级 < wNo的优先级，则前面所有的部分就要加()
@@ -334,10 +341,10 @@ FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
             if(top <= 1)
                 continue;
             top--;
-            string2 = m_strFormulaText.right(ops[top].nCount);//1+2 ---wOperator= +
-            m_strFormulaText = m_strFormulaText.left(m_strFormulaText.length() - ops[top].nCount);
-            string1 = m_strFormulaText.right(ops[top-1].nCount);//3+4 ---Operator = +
-            m_strFormulaText = m_strFormulaText.left(m_strFormulaText.length() - ops[top-1].nCount);
+            string2 = m_strFormulaText.toLocal8Bit().right(ops[top].nCount);//1+2 ---wOperator= +
+            m_strFormulaText = m_strFormulaText.toLocal8Bit().left(m_strFormulaText.toLocal8Bit().length() - ops[top].nCount);
+            string1 = m_strFormulaText.toLocal8Bit().right(ops[top-1].nCount);//3+4 ---Operator = +
+            m_strFormulaText = m_strFormulaText.toLocal8Bit().left(m_strFormulaText.toLocal8Bit().length() - ops[top-1].nCount);
             //wNo = *  由于左右两边的运算符优先级都比较低 所以加括号
             if(fOperator(ops[top].wOperator) < gOperator(wNo))
             {
@@ -413,6 +420,7 @@ FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
                 break;
             }
             string1 = string1 + string2;
+            nCount += ops[top].nCount;
             m_strFormulaText = m_strFormulaText + string1;
             ops[top-1].nCount += nCount;
             ops[top-1].wOperator = wNo;
@@ -427,11 +435,11 @@ FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
             int nCount1= ops[top-1].nCount;
             int nCount2 = ops[top-2].nCount + ops[top-3].nCount;
 
-            string1 = m_strFormulaText.right(nCount1);//A
-            m_strFormulaText = m_strFormulaText.left(m_strFormulaText.length() - nCount1);
+            string1 = m_strFormulaText.toLocal8Bit().right(nCount1);//A
+            m_strFormulaText = m_strFormulaText.toLocal8Bit().left(m_strFormulaText.toLocal8Bit().length() - nCount1);
 
-            string2 = m_strFormulaText.right(nCount2);
-            m_strFormulaText = m_strFormulaText.left(m_strFormulaText.length() - nCount2);
+            string2 = m_strFormulaText.toLocal8Bit().right(nCount2);
+            m_strFormulaText = m_strFormulaText.toLocal8Bit().left(m_strFormulaText.toLocal8Bit().length() - nCount2);
             //???? huangw
             switch (wNo) {
             case OP_MAX:
@@ -454,12 +462,13 @@ FORMULA_EXPORT const char*  getFormulaText(FORMULA* pFormula,bool bValue)
             }
             m_strFormulaText = m_strFormulaText + string1;
             top-=3;
-            ops[top].nCount = string1.length();
+            ops[top].nCount = string1.toLocal8Bit().length();
             ops[top].wOperator = wNo;
             continue;
         }
     }
-    return m_strFormulaText.toLocal8Bit().data();
+
+    return m_strFormulaText;
 }
 
 //在pFormula的里面寻找item,如果找到pOld,就用pNew替换,ITEM必须是数字 字符等

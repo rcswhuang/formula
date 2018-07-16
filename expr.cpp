@@ -1,11 +1,12 @@
-﻿
+﻿#if defined (_MSC_VER) && (_MSC_VER >=1600)
+#pragma execution_character_set("utf-8")
+#endif
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
 #include "hformulaex.h"
 #include "expr.h"
-
 
 int yylex( void );
 #define YYSTYPE ITEM
@@ -16,6 +17,7 @@ extern HSTTYPEINFO HstTypeInfo[];
 
 char szErrText[128];
 const char* szExpr;
+//const QString& szExpr;
 int k;
 
 QList<ITEMDATA*> *pItemList;
@@ -395,7 +397,7 @@ void SkipBlank()
 }
 
 /*
- * 通过对szExpr分析获取站名，点名，属性名，从而获取ITEM信息
+ * 通过对szExpr分析获取[站名.点名.属性名]，从而获取ITEM信息
 */
 bool getDbItem( ITEM* pItem )
 {
@@ -586,9 +588,9 @@ int yylex()    /* lexical analysis routine */
 		}
 	}
 
-	if ( HEADER_SIGN == szExpr[ k ] )
+    if ( HEADER_SIGN == szExpr[ k ] )//如果是[xxx.xxxx.xxx]格式，注意[]里面的格式都是固定的，利于分析
 	{
-		ITEM item;
+        ITEM item; //是ITEM项
         if ( getDbItem( &item ) )
 		{
 			yylval = item;
@@ -766,25 +768,26 @@ int Action2( ITEM& item )
 	return 0;
 }
 
-bool _compile_formula( const char* pszFormulaExpr, FORMULA* formula, QList<ITEMDATA*>* pList, bool check )
+bool _compile_formula(  const char* pszFormulaExpr, FORMULA* formula, QList<ITEMDATA*>* pList, bool check )
 {
     //ASSERT( pszFormulaExpr != NULL );
     //ASSERT( formula != NULL );
+    QString str = pszFormulaExpr;
+    szExpr = pszFormulaExpr;
 
-	szExpr = pszFormulaExpr;
 	k = 0;
 
 	pItemList = pList;
 	pItemData = NULL;
+/*
 
-    /*
     if ( pItemList != NULL)
     {
         pos = pItemList->GetHeadPosition();
         if ( pos != NULL )
             pItemData = (ITEMDATA*)pItemList->GetNext( pos );
     }
-    */
+
 
     if ( pItemList != NULL && !pItemList->isEmpty())
 	{
@@ -792,7 +795,7 @@ bool _compile_formula( const char* pszFormulaExpr, FORMULA* formula, QList<ITEMD
         pItemData = (ITEMDATA*)pItemList->at(pos);
         pos++;
 	}
-
+*/
 	pFormula = formula; len = 0;
     memset( pFormula->wFormula, 0, FORMULALEN * sizeof(ushort) );
 

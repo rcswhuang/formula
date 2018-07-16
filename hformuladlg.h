@@ -1,4 +1,4 @@
-#ifndef HFORMULADLG_H
+﻿#ifndef HFORMULADLG_H
 #define HFORMULADLG_H
 
 #include <QDialog>
