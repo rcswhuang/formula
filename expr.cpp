@@ -199,7 +199,7 @@ bool getFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 	Param.btType = TYPE_NULL;
 	Param.pBuffer = &station;
 
-    for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ,0); Param.wPoint++ )
+    for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (HLPARAM)&Param ,0); Param.wPoint++ )
 	{
 		if ( !strcmp( pStName, station.szStationName ) )
 		{
@@ -213,7 +213,7 @@ bool getFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 			Param.pBuffer = &analogue;
 			Param.btType = TYPE_ANALOGUE;
 
-            for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ,0); Param.wPoint++ )
+            for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (HLPARAM)&Param ,0); Param.wPoint++ )
 			{
                 char szTemp[PTNAMELEN+EQUIPMENTLEN+1];
                 sprintf(szTemp,"%s",analogue.szAnalogueName);
@@ -235,7 +235,7 @@ bool getFormulaItem( char* pStName, char* pPtName, char* pAttrName, ITEM* pItem 
 			Param.pBuffer = &digital;
 			Param.btType = TYPE_DIGITAL;
 
-            for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (LPARAM)&Param ,0); Param.wPoint++ )
+            for ( Param.wPoint = 0; m_lpFormulaProc( FM_FINDDBINFO, 0, (HLPARAM)&Param ,0); Param.wPoint++ )
 			{
                 char szTemp[PTNAMELEN+EQUIPMENTLEN+1];
                 sprintf(szTemp,"%s",digital.szDigitalName);

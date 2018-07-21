@@ -142,7 +142,7 @@ bool FORMULA_EXPORT saveFormulaData()
     FORMULAITEMLIST param;
     param.pFormulaList = &m_FormulaList;
     param.pItemList = &m_ItemList;
-    if(!m_lpFormulaProc(FM_SAVEFORMULALIST,0,(LPARAM)&param,0))//huangw
+    if(!m_lpFormulaProc(FM_SAVEFORMULALIST,0,(HLPARAM)&param,0))//huangw
     {
         m_bModified = false;
         return true;
@@ -240,6 +240,7 @@ bool FORMULA_EXPORT compileFormula(const char* szFormula,FORMULA* pFormula)//编
     return _compile_formula(szFormula,pFormula,NULL,false);
 }
 
+//QString 还是要换回const char* //huangw
 FORMULA_EXPORT QString  getFormulaText(FORMULA* pFormula,bool bValue)
 {
     if(!m_bFormula || NULL == pFormula)
@@ -565,7 +566,7 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                     param.btType = TYPE_DIGITAL;
                 else if(ITEM_PULSE == pItem->btType)
                     param.btType = TYPE_PULSE;
-                if(!m_lpFormulaProc((bHst?FM_GETHSTATTR:FM_GETDBATTR),0,(LPARAM)&param,nDBID))
+                if(!m_lpFormulaProc((bHst?FM_GETHSTATTR:FM_GETDBATTR),0,(HLPARAM)&param,nDBID))
                     return false;
                 top++;
             }
@@ -593,7 +594,7 @@ bool FORMULA_EXPORT doFormula(ushort wNo,ITEM* item,bool bHst,struct tm* ptm,uch
                 param.btType = TYPE_ANALOGUE;
                 if(TYPE_PULSE == pItem->btType)
                     param.btType = TYPE_PULSE;
-                if(!m_lpFormulaProc(FM_GETHSTATTR,0,(LPARAM)&param,nDBID))
+                if(!m_lpFormulaProc(FM_GETHSTATTR,0,(HLPARAM)&param,nDBID))
                     return false;
 
                 break;

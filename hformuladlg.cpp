@@ -107,7 +107,7 @@ void HFormulaDlg::init()
     Param.btType = TYPE_NULL;
     Param.pBuffer = &station;
 
-    for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)//读取厂站的信息，从0开始，注意wPoint此时是厂站的ID
+    for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(HLPARAM)&Param,0);Param.wPoint++)//读取厂站的信息，从0开始，注意wPoint此时是厂站的ID
     {
         ui->IDC_STATION->addItem(station.szStationName,station.wStationID);
         if(station.wStationID == wStation)
@@ -117,7 +117,7 @@ void HFormulaDlg::init()
             Param1.wStation = wStation;
             Param1.btType = TYPE_GROUP;
             Param1.pBuffer = &equipGroup;
-            for(Param1.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param1,0);Param1.wPoint++)
+            for(Param1.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(HLPARAM)&Param1,0);Param1.wPoint++)
             {
                 ui->IDC_COMBOMODE->addItem(equipGroup.szGroupName,equipGroup.wGroupID);
             }
@@ -724,7 +724,7 @@ void HFormulaDlg::onStationChanged_clicked()
     Param.wStation = wStation;
     Param.btType = TYPE_GROUP;
     Param.pBuffer = &equipGroup;
-    for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)
+    for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(HLPARAM)&Param,0);Param.wPoint++)
     {
         ui->IDC_COMBOMODE->addItem(equipGroup.szGroupName,equipGroup.wGroupID);
     }
@@ -837,7 +837,7 @@ void HFormulaDlg::setPointList(ushort wStation, uchar btType)
     {
     case TYPE_ANALOGUE:
         Param.pBuffer = &analogue;
-        for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)
+        for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(HLPARAM)&Param,0);Param.wPoint++)
         {
             if(analogue.wGroupID == wProtect){
                 QListWidgetItem* item = new QListWidgetItem(ui->IDC_LIST);
@@ -849,7 +849,7 @@ void HFormulaDlg::setPointList(ushort wStation, uchar btType)
         break;
     case TYPE_DIGITAL:
         Param.pBuffer = &digital;
-        for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(LPARAM)&Param,0);Param.wPoint++)
+        for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(HLPARAM)&Param,0);Param.wPoint++)
         {
             if(digital.wGroupID == wProtect){
                 QListWidgetItem* item = new QListWidgetItem(ui->IDC_LIST);

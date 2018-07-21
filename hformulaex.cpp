@@ -420,7 +420,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
 
     STATION station;
     parameter.pBuffer = &station;
-    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID))
+    if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&parameter,nDBID))
         return false;
     parameter.btType = btType;
     char szText[128] = "";
@@ -429,7 +429,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
     {
         ANALOGUE analogue;
         parameter.pBuffer = &analogue;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID))
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&parameter,nDBID))
             return false;
         int i = 0;
         for(; AnaAttrInfo[i].szAttrib != NULL;i++)
@@ -445,7 +445,7 @@ bool getWordString(ushort wStation,uchar btType,ushort wPoint,ushort wAttrib,QSt
     {
         DIGITAL digital;
         parameter.pBuffer = &digital;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID))
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&parameter,nDBID))
             return false;
         int i = 0;
         for(; DgtAttrInfo[i].szAttrib != NULL;i++)
@@ -512,7 +512,7 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
         if(bValue && NULL != m_lpFormulaProc)
         {
             parameter.btType = btType;
-            if(m_lpFormulaProc(FM_GETDBATTR,0,(LPARAM)&item,nDBID))
+            if(m_lpFormulaProc(FM_GETDBATTR,0,(HLPARAM)&item,nDBID))
             {
                 char szText[64] = "";
                 if(ITEM_FLOAT == item.btType)
@@ -533,7 +533,7 @@ bool getItemString(ushort wNo,QString& string,bool bValue)
         if(bValue && NULL != m_lpFormulaProc)
         {
             parameter.btType = btType;
-            if(m_lpFormulaProc(FM_GETDBATTR,0,(LPARAM)&item,nDBID))
+            if(m_lpFormulaProc(FM_GETDBATTR,0,(HLPARAM)&item,nDBID))
             {
                 char szText[64] = "";
                 if(ITEM_FLOAT == item.btType)
@@ -590,7 +590,7 @@ bool getPointName(ushort wStation,uchar btType,ushort wPoint,QString& string)//w
 
     STATION station;
     parameter.pBuffer = &station;
-    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
+    if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&parameter,nDBID));
         return false;
     parameter.btType = btType;
     char szText[128] = "";
@@ -599,7 +599,7 @@ bool getPointName(ushort wStation,uchar btType,ushort wPoint,QString& string)//w
     {
         ANALOGUE analogue;
         parameter.pBuffer = &analogue;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&parameter,nDBID));
             return false;
 
         sprintf(szText,"%s%s",station.szStationName,analogue.szAnalogueName);
@@ -610,7 +610,7 @@ bool getPointName(ushort wStation,uchar btType,ushort wPoint,QString& string)//w
     {
         DIGITAL digital;
         parameter.pBuffer = &digital;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&parameter,nDBID));
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&parameter,nDBID));
             return false;
 
         sprintf(szText,"%s%s",station.szStationName,digital.szDigitalName);
@@ -795,7 +795,7 @@ void getInputList(FORMULARUN* pFormulaRun,QList<FORMULACONDITION*>* pList,int nD
                     param.btType = TYPE_DIGITAL;
                 }
                 ItemInput[top].wPoint = pItem->DbWord.wPoint;
-                if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&param,nDBID))
+                if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&param,nDBID))
                     return;
                 if(item.btType == ITEM_BOOLEAN)
                     ItemInput[top].fValue = (float)pItem->bValue;
@@ -1159,14 +1159,14 @@ bool getVirtualYxFailList(ushort wStation,uchar btType,ushort wPoint,uchar btVal
     param.btType = TYPE_NULL;
     STATION station;
     param.pBuffer = &station;
-    if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&param,nDBID))
+    if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&param,nDBID))
         return false;
     param.btType = btType;
     if(TYPE_DIGITAL == btType)
     {
         DIGITAL digital;
         param.pBuffer = &digital;
-        if(!m_lpFormulaProc(FM_GETDBINFO,0,(LPARAM)&param,nDBID)) return false;
+        if(!m_lpFormulaProc(FM_GETDBINFO,0,(HLPARAM)&param,nDBID)) return false;
         ushort wFormulaNo = digital.wFormulaID;
         if(wFormulaNo != 0 && wFormulaNo != (ushort)-1)
         {
