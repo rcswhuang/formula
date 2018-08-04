@@ -92,7 +92,7 @@ ATTRINFO PulAttrInfo[]=
 };
 
 //初始化Formula
-FORMULA_EXPORT bool  initFormula(LPFORMULAPROC lpFormulaProc,uchar btModuleType /*= MODULE_ID*/)
+FORMULA_EXPORT bool initFormula(LPFORMULAPROC lpFormulaProc,uchar btModuleType /*= MODULE_ID*/)
 {
     if(m_bFormula)
         return true;
@@ -166,7 +166,7 @@ bool FORMULA_EXPORT addFormula(FORMULA* pFormula,ushort wNo,uchar btType /*= FOR
         return false;
 
     FORMULA* pNewFormula = NULL;
-    if((ushort)wNo != -1)
+    if(wNo != (ushort)-1)
         pNewFormula = getFormula(wNo);
     if(NULL == pNewFormula)
     {
@@ -241,10 +241,11 @@ bool FORMULA_EXPORT compileFormula(const char* szFormula,FORMULA* pFormula)//编
 }
 
 //QString 还是要换回const char* //huangw
-FORMULA_EXPORT QString  getFormulaText(FORMULA* pFormula,bool bValue)
+FORMULA_EXPORT QString&  getFormulaText(FORMULA* pFormula,bool bValue)
 {
+    m_strFormulaText.clear();
     if(!m_bFormula || NULL == pFormula)
-        return NULL;
+        return m_strFormulaText;
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
     QString string1,string2;
     //ops结构存放的是解析后的表达式最后变成1个完成的长度，操作符也是最后一个终极操作符
@@ -261,7 +262,7 @@ FORMULA_EXPORT QString  getFormulaText(FORMULA* pFormula,bool bValue)
     }ops[FORMULALEN];
 
 
-    m_strFormulaText.clear();
+    //m_strFormulaText.clear();
     if(0 == pFormula->wFormula[0])
         return m_strFormulaText;
 
