@@ -73,6 +73,8 @@ HFormulaDlg::HFormulaDlg(FORMULA* pFormula,QWidget *parent):
     //init();
     connect(ui->okBtn,SIGNAL(clicked(bool)),this,SLOT(onOk()));
     connect(ui->cancleBtn,SIGNAL(clicked(bool)),this,SLOT(onCancle()));
+    setWindowTitle("公式计算");
+    setWindowIcon(QIcon(":/images/calculator2.png"));
 }
 
 HFormulaDlg::~HFormulaDlg()

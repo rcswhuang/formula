@@ -28,7 +28,8 @@ SOURCES       = \
     expr.cpp
 
 RESOURCES     = \
-    styleqss.qrc
+    styleqss.qrc \
+    image.qrc
     
 
 FORMS += \
