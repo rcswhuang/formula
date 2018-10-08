@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>705</width>
+    <width>886</width>
     <height>444</height>
    </rect>
   </property>
@@ -73,7 +73,7 @@
          <property name="font">
           <font>
            <family>宋体</family>
-           <pointsize>13</pointsize>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
@@ -99,7 +99,7 @@
          <property name="font">
           <font>
            <family>宋体</family>
-           <pointsize>13</pointsize>
+           <pointsize>10</pointsize>
           </font>
          </property>
          <property name="text">
@@ -810,8 +810,8 @@
           <widget class="QLabel" name="label">
            <property name="font">
             <font>
-             <family>Songti SC</family>
-             <pointsize>13</pointsize>
+             <family>宋体</family>
+             <pointsize>9</pointsize>
             </font>
            </property>
            <property name="text">
@@ -836,7 +836,7 @@
            <property name="font">
             <font>
              <family>宋体</family>
-             <pointsize>13</pointsize>
+             <pointsize>9</pointsize>
             </font>
            </property>
           </widget>
@@ -845,8 +845,8 @@
           <widget class="QLabel" name="label_2">
            <property name="font">
             <font>
-             <family>Songti SC</family>
-             <pointsize>13</pointsize>
+             <family>宋体</family>
+             <pointsize>9</pointsize>
             </font>
            </property>
            <property name="text">
@@ -871,7 +871,7 @@
            <property name="font">
             <font>
              <family>宋体</family>
-             <pointsize>13</pointsize>
+             <pointsize>9</pointsize>
             </font>
            </property>
           </widget>
@@ -884,8 +884,8 @@
           <widget class="QLabel" name="label_3">
            <property name="font">
             <font>
-             <family>Songti SC</family>
-             <pointsize>13</pointsize>
+             <family>宋体</family>
+             <pointsize>9</pointsize>
             </font>
            </property>
            <property name="text">
@@ -910,7 +910,7 @@
            <property name="font">
             <font>
              <family>宋体</family>
-             <pointsize>13</pointsize>
+             <pointsize>9</pointsize>
             </font>
            </property>
           </widget>
@@ -919,8 +919,8 @@
           <widget class="QLabel" name="label_4">
            <property name="font">
             <font>
-             <family>Songti SC</family>
-             <pointsize>13</pointsize>
+             <family>宋体</family>
+             <pointsize>9</pointsize>
             </font>
            </property>
            <property name="text">
@@ -945,7 +945,7 @@
            <property name="font">
             <font>
              <family>宋体</family>
-             <pointsize>13</pointsize>
+             <pointsize>9</pointsize>
             </font>
            </property>
           </widget>
@@ -963,7 +963,7 @@
          <property name="font">
           <font>
            <family>宋体</family>
-           <pointsize>10</pointsize>
+           <pointsize>9</pointsize>
           </font>
          </property>
         </widget>

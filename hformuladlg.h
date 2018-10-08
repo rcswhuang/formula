@@ -79,10 +79,10 @@ public slots:
     void redo();
     void undo();
 
-    void onStationChanged_clicked();
-    void onIntervalChanged_clicked();
-    void onTypeChanged_clicked();
-    void onAttribChanged_clicked();
+    void onStationChanged_clicked(int);
+    void onIntervalChanged_clicked(int);
+    void onTypeChanged_clicked(int);
+    void onAttribChanged_clicked(int);
 
     void onListWidget_doubleClicked();
 

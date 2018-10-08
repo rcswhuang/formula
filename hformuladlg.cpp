@@ -40,7 +40,7 @@ QString strComp = "QPushButton { \
 QString strLabel = "QLabel{background-color:#00008B;color:#ffffff;}";
 
 QString LineEdit = "QTextEdit{ \
-        font-family:Helvetica;font-size:14px;height:50px;border-radius:5px \
+        font-family:宋体;font-size:10px;height:50px;border-radius:5px \
         }";
 
 
@@ -84,17 +84,19 @@ HFormulaDlg::~HFormulaDlg()
 
 void HFormulaDlg::init()
 {
-    initConnect();
-    connect(ui->IDC_STATION,SIGNAL(currentIndexChanged(int)),this,SLOT(onStationChanged_clicked()));
-    connect(ui->IDC_COMBOMODE,SIGNAL(currentIndexChanged(int)),this,SLOT(onIntervalChanged_clicked()));
-    connect(ui->IDC_TYPE,SIGNAL(currentIndexChanged(int)),this,SLOT(onTypeChanged_clicked()));
-    connect(ui->IDC_ATTRIB,SIGNAL(currentIndexChanged(int)),this,SLOT(onAttribChanged_clicked()));
-    connect(ui->IDC_LIST,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(onListWidget_doubleClicked()));
-
     ui->IDC_STATION->clear();
     ui->IDC_COMBOMODE->clear();//间隔
     ui->IDC_STATION->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     ui->IDC_COMBOMODE->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+
+    initConnect();
+    connect(ui->IDC_STATION,SIGNAL(currentIndexChanged(int)),this,SLOT(onStationChanged_clicked(int)));
+    connect(ui->IDC_COMBOMODE,SIGNAL(currentIndexChanged(int)),this,SLOT(onIntervalChanged_clicked(int)));
+    connect(ui->IDC_TYPE,SIGNAL(currentIndexChanged(int)),this,SLOT(onTypeChanged_clicked(int)));
+    connect(ui->IDC_ATTRIB,SIGNAL(currentIndexChanged(int)),this,SLOT(onAttribChanged_clicked(int)));
+    connect(ui->IDC_LIST,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(onListWidget_doubleClicked()));
+
+
 
     //先设置类型
     for(int i = 0; AttrInfos[i].btType != 0;i++)
@@ -711,10 +713,12 @@ uchar HFormulaDlg::getType()
     return btType;
 }
 
-void HFormulaDlg::onStationChanged_clicked()
+void HFormulaDlg::onStationChanged_clicked(int index)
 {
-    int index = ui->IDC_STATION->currentIndex();
-    if(-1 == index)
+    if((int)-1 == index)
+        return;
+    index = ui->IDC_STATION->currentIndex();
+    if((int)-1 == index)
         return;
     ushort wStationID = ui->IDC_STATION->currentData().toUInt();
     wStation = wStationID;
@@ -740,10 +744,12 @@ void HFormulaDlg::onStationChanged_clicked()
 
 }
 
-void HFormulaDlg::onIntervalChanged_clicked()
+void HFormulaDlg::onIntervalChanged_clicked(int index)
 {
-    int index = ui->IDC_COMBOMODE->currentIndex();
-    if(-1 == index)
+    if((int)-1 == index)
+        return;
+    index = ui->IDC_COMBOMODE->currentIndex();
+    if((int)-1 == index)
         return;
     ushort wProtectID = ui->IDC_COMBOMODE->currentData().toUInt();
     if(wProtectID == wProtect)
@@ -759,9 +765,9 @@ void HFormulaDlg::onIntervalChanged_clicked()
         setPointList(ui->IDC_STATION->currentData().toUInt(),btType);
 }
 
-void HFormulaDlg::onTypeChanged_clicked()
+void HFormulaDlg::onTypeChanged_clicked(int index)
 {
-    int index = ui->IDC_TYPE->currentIndex();
+    //int index = ui->IDC_TYPE->currentIndex();
     if(-1 == index)
         return;
     uchar btTypeID = ui->IDC_TYPE->currentData().toUInt();
@@ -773,7 +779,7 @@ void HFormulaDlg::onTypeChanged_clicked()
         setPointList(ui->IDC_STATION->currentData().toUInt(),btType);
 }
 
-void HFormulaDlg::onAttribChanged_clicked()
+void HFormulaDlg::onAttribChanged_clicked(int index)
 {
 
 }
