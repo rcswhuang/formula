@@ -22,6 +22,11 @@
     <height>16777215</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <family>宋体</family>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>公式计算</string>
   </property>
@@ -839,6 +844,11 @@
              <pointsize>9</pointsize>
             </font>
            </property>
+           <item>
+            <property name="text">
+             <string/>
+            </property>
+           </item>
           </widget>
          </item>
          <item>
@@ -874,6 +884,11 @@
              <pointsize>9</pointsize>
             </font>
            </property>
+           <item>
+            <property name="text">
+             <string/>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>
@@ -913,6 +928,11 @@
              <pointsize>9</pointsize>
             </font>
            </property>
+           <item>
+            <property name="text">
+             <string/>
+            </property>
+           </item>
           </widget>
          </item>
          <item>
@@ -948,6 +968,11 @@
              <pointsize>9</pointsize>
             </font>
            </property>
+           <item>
+            <property name="text">
+             <string/>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>

@@ -212,6 +212,7 @@ bool FORMULA_EXPORT createFormula(FORMULA* pFormula,ushort wNo)//创建某个测
 {
     if(!m_bFormula || NULL == pFormula)
         return false;
+    pFormula->wFormula[0] = 0;
     if((ushort)-1 != wNo)
     {
         FORMULA* pTemp = getFormula(wNo);
@@ -249,12 +250,14 @@ FORMULA_EXPORT QString&  getFormulaText(FORMULA* pFormula,bool bValue)
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
     QString string1,string2;
     //ops结构存放的是解析后的表达式最后变成1个完成的长度，操作符也是最后一个终极操作符
+    //ops结构存放的是解析后的表达式最后变成1个完成的长度，操作符也是最后一个终极操作符
     /*  规则应该是一个中序排序存放在pFormlua里面的wFormula数组内
      *           *
      *       +       +
      *     1   2   3   4
      * 适合二元运算符
      */
+    //
     //
     struct {
         int nCount;

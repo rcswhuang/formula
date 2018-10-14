@@ -40,10 +40,12 @@ QString strComp = "QPushButton { \
 QString strLabel = "QLabel{background-color:#00008B;color:#ffffff;}";
 
 QString LineEdit = "QTextEdit{ \
-        font-family:宋体;font-size:10px;height:50px;border-radius:5px \
+        font-family:宋体;font-size:16px;height:50px;border-radius:5px \
         }";
 
-
+QString ComboBox = "QComboBox{ \
+        font-family:宋体;font-size:20px;height:50px;border-radius:5px \
+        }";
 
 HFormulaDlg::HFormulaDlg(QWidget *parent) :
     QDialog(parent),
@@ -89,16 +91,15 @@ void HFormulaDlg::init()
     ui->IDC_STATION->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     ui->IDC_COMBOMODE->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
-    initConnect();
-    connect(ui->IDC_STATION,SIGNAL(currentIndexChanged(int)),this,SLOT(onStationChanged_clicked(int)));
-    connect(ui->IDC_COMBOMODE,SIGNAL(currentIndexChanged(int)),this,SLOT(onIntervalChanged_clicked(int)));
-    connect(ui->IDC_TYPE,SIGNAL(currentIndexChanged(int)),this,SLOT(onTypeChanged_clicked(int)));
-    connect(ui->IDC_ATTRIB,SIGNAL(currentIndexChanged(int)),this,SLOT(onAttribChanged_clicked(int)));
-    connect(ui->IDC_LIST,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(onListWidget_doubleClicked()));
-
-
-
     //先设置类型
+    ui->IDC_STATION->addItem("");
+    ui->IDC_TYPE->addItem("");
+    ui->IDC_COMBOMODE->addItem("");
+    ui->IDC_ATTRIB->addItem("");
+    ui->IDC_STATION->setCurrentIndex(0);
+    ui->IDC_COMBOMODE->setCurrentIndex(0);
+    ui->IDC_TYPE->setCurrentIndex(0);
+    ui->IDC_ATTRIB->setCurrentIndex(0);
     for(int i = 0; AttrInfos[i].btType != 0;i++)
     {
         ui->IDC_TYPE->addItem(AttrInfos[i].szType,AttrInfos[i].btType);
@@ -114,30 +115,14 @@ void HFormulaDlg::init()
     for(Param.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(HLPARAM)&Param,0);Param.wPoint++)//读取厂站的信息，从0开始，注意wPoint此时是厂站的ID
     {
         ui->IDC_STATION->addItem(station.szStationName,station.wStationID);
-        if(station.wStationID == wStation)
-        {
-            EQUIPMENTGROUP equipGroup;
-            FORMULAPARAMETER Param1;
-            Param1.wStation = wStation;
-            Param1.btType = TYPE_GROUP;
-            Param1.pBuffer = &equipGroup;
-            for(Param1.wPoint = 0;m_lpFormulaProc(FM_FINDDBINFO,0,(HLPARAM)&Param1,0);Param1.wPoint++)
-            {
-                ui->IDC_COMBOMODE->addItem(equipGroup.szGroupName,equipGroup.wGroupID);
-            }
-            ui->IDC_COMBOMODE->setCurrentIndex(0);
-
-            setPointList(wStation,btType);
-        }
     }
 
-
-    int index = ui->IDC_TYPE->findData(btType);
+    /*int index = ui->IDC_TYPE->findData(btType);
     if(index != -1)
     {
         ui->IDC_TYPE->setCurrentIndex(index);
         updateAttrib();
-    }
+    }*/
 
     //ui->IDC_FORMULA->setChecked(Qt::Checked);
     //ui->IDC_INFO->setEnabled(false);
@@ -156,10 +141,20 @@ void HFormulaDlg::init()
         }
     }
 
+    initConnect();
+    connect(ui->IDC_STATION,SIGNAL(currentIndexChanged(int)),this,SLOT(onStationChanged_clicked(int)));
+    connect(ui->IDC_COMBOMODE,SIGNAL(currentIndexChanged(int)),this,SLOT(onIntervalChanged_clicked(int)));
+    connect(ui->IDC_TYPE,SIGNAL(currentIndexChanged(int)),this,SLOT(onTypeChanged_clicked(int)));
+    connect(ui->IDC_ATTRIB,SIGNAL(currentIndexChanged(int)),this,SLOT(onAttribChanged_clicked(int)));
+    connect(ui->IDC_LIST,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(onListWidget_doubleClicked()));
 }
 
 void HFormulaDlg::initConnect()
 {
+    //ui->IDC_STATION->setStyleSheet(ComboBox);
+    //ui->IDC_TYPE->setStyleSheet(ComboBox);
+    //ui->IDC_COMBOMODE->setStyleSheet(ComboBox);
+    //ui->IDC_ATTRIB->setStyleSheet(ComboBox);
     connect(ui->IDC_0,SIGNAL(clicked(bool)),this,SLOT(idc0_clicked()));
     connect(ui->IDC_1,SIGNAL(clicked(bool)),this,SLOT(idc1_clicked()));
     connect(ui->IDC_2,SIGNAL(clicked(bool)),this,SLOT(idc2_clicked()));
@@ -724,7 +719,9 @@ void HFormulaDlg::onStationChanged_clicked(int index)
     wStation = wStationID;
 
     wProtect = (ushort)-1;
+    ui->IDC_COMBOMODE->blockSignals(true);
     ui->IDC_COMBOMODE->clear();
+    ui->IDC_COMBOMODE->blockSignals(false);
     EQUIPMENTGROUP equipGroup;
     FORMULAPARAMETER Param;
     Param.wStation = wStation;
